@@ -34,7 +34,7 @@ Before withdrawing, you can check your accumulated rBTC balance:
 
 1. Go to the BitChill app dashboard
 2. View your accumulated rBTC per handler
-3. Or check on-chain using the handler's `getAccumulatedRbtc(address)` function
+3. Or check on-chain using the handler's `getAccumulatedRbtcBalance(address)` function
 
 ## Withdrawal Methods
 
@@ -77,7 +77,8 @@ For Uniswap-based handlers (USDRIF), the swap produces WRBTC (wrapped rBTC). The
 
 ### Zero Balance Handling
 
-If a handler has no accumulated rBTC for you, the withdrawal function simply skips it without reverting.
+- `withdrawAllAccumulatedRbtc` skips handler combinations where your balance is zero.
+- `withdrawRbtcFromTokenHandler` can revert if there is no accumulated rBTC for that specific handler.
 
 ### Schedule Independence
 
@@ -92,9 +93,7 @@ Deleting a schedule does **not** automatically withdraw your rBTC. Always withdr
 
 ## Transaction Costs
 
-Withdrawing rBTC requires a small gas fee paid in rBTC.
-
-Estimated gas: ~0.0002 rBTC per handler
+Withdrawing rBTC requires network gas paid by the caller. Exact cost depends on Rootstock conditions and the withdrawal path (single handler vs multi-handler).
 
 ## Bridging to Bitcoin
 

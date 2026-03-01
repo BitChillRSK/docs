@@ -10,16 +10,16 @@ One of BitChill's key features is that your stablecoins earn yield while waiting
 
 When you deposit stablecoins into a BitChill schedule:
 
-1. Your stablecoins are deposited into a lending protocol (Tropykus or Sovryn)
-2. You receive lending tokens (kDOC, kUSDRIF, or iSUSD) representing your deposit
-3. These lending tokens accrue value over time as borrowers pay interest
-4. When purchases occur, the required amount is withdrawn from lending
-5. Your remaining balance continues earning yield
+1. Your stablecoins are routed by the selected handler into a lending protocol (Tropykus or Sovryn)
+2. The handler receives lending tokens (kDOC, kUSDRIF, or iSUSD) and tracks your share internally
+3. The lending position accrues value over time as borrowers pay interest
+4. When purchases occur, the required stablecoin amount is redeemed from lending
+5. Your remaining position continues earning yield
 
 ```mermaid
 flowchart LR
     A[Your DOC] --> B[Deposited to Tropykus]
-    B --> C[Receive kDOC]
+    B --> C["Handler receives kDOC"]
     C --> D[kDOC accrues value]
     D --> E[Withdraw when needed]
 ```
@@ -35,17 +35,17 @@ BitChill tracks your yield through the lending token mechanism:
 
 ### Tropykus (Compound-style)
 
-Your kToken balance stays constant, but the exchange rate to the underlying stablecoin increases:
+The handler tracks your position as a kToken balance (`s_kTokenBalances[user]`). The underlying stablecoin value grows as the exchange rate increases:
 
 ```
-Your DOC = kToken balance × exchangeRate
+Underlying stablecoin value = tracked kToken balance × exchange rate
 ```
 
-As `exchangeRate` increases, your underlying DOC value grows.
+As `exchangeRate` increases, your underlying value grows.
 
 ### Sovryn
 
-Sovryn tracks your balance directly. Your `assetBalanceOf` increases as interest accrues.
+The handler tracks your position in iSUSD (`s_iSusdBalances[user]`). As Sovryn yield accrues, the redeemable stablecoin value of that position increases.
 
 ## Principal vs Interest
 
@@ -89,7 +89,7 @@ withdrawAllAccumulatedInterest(tokens[], lendingProtocolIndexes[])
 Withdraw both principal and interest in one transaction:
 
 ```solidity
-withdrawTokenAndInterest(token, lendingProtocolIndex, scheduleIndex, scheduleId, amount)
+withdrawTokenAndInterest(token, scheduleIndex, scheduleId, withdrawalAmount, lendingProtocolIndex)
 ```
 
 ## Interest and Purchases
@@ -105,16 +105,11 @@ Each purchase swaps exactly 100 DOC for rBTC. The 50 DOC interest remains untouc
 
 ## Expected Yields
 
-Yield rates depend on:
-- Lending protocol utilization rates
-- Market conditions
-- Supply and demand for borrowing
+Yield rates are variable and depend on lending protocol utilization and market conditions.
 
-Check current APYs:
+Check live rates on:
 - **Tropykus**: [tropykus.com](https://tropykus.com/)
 - **Sovryn**: [sovryn.app](https://sovryn.app/)
-
-Typical ranges: 2-10% APY depending on market conditions.
 
 ## Risks
 
@@ -129,17 +124,25 @@ BitChill only integrates with established Rootstock lending protocols, but users
 
 ## Example Scenario
 
-You deposit 1000 DOC with 100 DOC weekly purchases:
+Illustrative example only (not a forecast or guarantee):
+
+- Initial deposit: `1000 DOC`
+- Purchase amount: `100 DOC` weekly
+- Assumed fee: `1%` flat (so `99 DOC` net swapped each week)
+- Assumed lending APY: `8%` (kept constant for illustration)
+- Assumed swap price: `1 BTC = 100,000 DOC` (kept constant for illustration)
+
+Under those fixed assumptions:
 
 | Week | Principal | Interest | Purchased rBTC |
 |------|-----------|----------|----------------|
-| 0 | 1000 DOC | 0 DOC | 0 |
-| 1 | 900 DOC | ~1.5 DOC | ~0.001 BTC |
-| 2 | 800 DOC | ~2.8 DOC | ~0.002 BTC |
-| 4 | 600 DOC | ~4.5 DOC | ~0.004 BTC |
-| 10 | 0 DOC | ~5.0 DOC | ~0.01 BTC |
+| 0 | 1000 DOC | 0 DOC | 0 BTC |
+| 1 | 900 DOC | ~1.5 DOC | ~0.00099 BTC |
+| 2 | 800 DOC | ~2.9 DOC | ~0.00198 BTC |
+| 4 | 600 DOC | ~5.2 DOC | ~0.00396 BTC |
+| 10 | 0 DOC | ~8.5 DOC | ~0.00990 BTC |
 
-After all purchases complete, you still have ~5 DOC in interest to withdraw!
+Real outcomes will differ based on live lending rates, fee settings, swap execution price, slippage, and timing.
 
 ## Next Steps
 

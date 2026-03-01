@@ -19,20 +19,14 @@ Fees are charged **during each purchase**, not on deposits or withdrawals. The f
 
 ## Current Fee Rate
 
-The current production fee is **1% flat** on each purchase.
+Deployment defaults are **1% flat** on each purchase (`minFeeRate = maxFeeRate = 100`).
+Live fee values are on-chain and can be changed via handler owner configuration.
 
-| Purchase Amount | Fee Rate | Fee Amount | You Receive |
-|-----------------|----------|------------|-------------|
-| 50 DOC | 1% | 0.50 DOC | ~49.50 DOC worth of rBTC |
-| 100 DOC | 1% | 1.00 DOC | ~99.00 DOC worth of rBTC |
-| 500 DOC | 1% | 5.00 DOC | ~495.00 DOC worth of rBTC |
-
-:::tip Compare to Alternatives
-BitChill's 1% fee is competitive with:
-- **Centralized exchanges**: 0.5-1.5% trading fees + withdrawal fees
-- **Manual DEX swaps**: Gas costs can exceed 1% on small amounts
-- **Recurring buy services**: Often charge 1-2% + spread
-:::
+| Purchase Amount | Fee Rate | Fee Amount | Net Swap Amount |
+|-----------------|----------|------------|-----------------|
+| 50 DOC | 1% | 0.50 DOC | 49.50 DOC |
+| 100 DOC | 1% | 1.00 DOC | 99.00 DOC |
+| 500 DOC | 1% | 5.00 DOC | 495.00 DOC |
 
 ## Sliding Scale Fee Model
 
@@ -75,16 +69,7 @@ The BitChill swapper infrastructure pays gas for executing your scheduled purcha
 
 ### User Transactions
 
-You pay gas for transactions you initiate:
-
-| Action | Estimated Gas Cost |
-|--------|-------------------|
-| Create schedule | ~0.0005 rBTC |
-| Modify schedule | ~0.0003 rBTC |
-| Withdraw rBTC | ~0.0002 rBTC |
-| Withdraw interest | ~0.0003 rBTC |
-
-*Gas costs vary based on network conditions.*
+You pay gas for transactions you initiate (create, update, withdraw, delete). Gas usage varies by action and network conditions.
 
 ## Fee Transparency
 

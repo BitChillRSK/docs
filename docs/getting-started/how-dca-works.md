@@ -16,7 +16,7 @@ Dollar Cost Averaging (DCA) is an investment strategy where you buy a fixed amou
 | Aspect | Traditional DCA | BitChill |
 |--------|----------------|----------|
 | Execution | Manual (remember to buy) | Automatic (smart contracts) |
-| Frequency | Self-discipline required | Guaranteed on schedule |
+| Frequency | Self-discipline required | Executed by swapper role when due |
 | Idle funds | Sit in exchange/wallet | Earn yield in lending protocols |
 | Custody | Often on exchanges | Non-custodial, your keys |
 | Transparency | Trust the exchange | Verifiable on-chain |

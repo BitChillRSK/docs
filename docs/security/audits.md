@@ -33,13 +33,15 @@ The initial audit reviewed the core protocol architecture:
 
 ### Key Findings & Resolutions
 
-| Severity | Finding | Resolution |
-|----------|---------|------------|
-| Medium | Fee calculation edge cases | Fixed with improved bounds checking |
-| Medium | Reentrancy vectors in handlers | Added ReentrancyGuard to all handlers |
-| Medium | Role management gaps | Strengthened access control checks |
-| Low | Gas optimization opportunities | Implemented where practical |
-| Info | Documentation improvements | Updated NatSpec and documentation |
+| ID | Severity | Finding | Resolution |
+|----|----------|---------|------------|
+| M-01 | Medium | rBTC withdrawal to non-receiving contracts | Added stuck funds recovery |
+| M-02 | Medium | `withdrawAllAccumulatedRbtc()` revert conditions | Added balance checks |
+| M-03 | Medium | Fee frontrunning via purchase period manipulation | Restricted period changes |
+| L-01 | Low | Zero-balance schedule deletion | Added balance check before withdrawal |
+| L-02 | Low | Schedule ID collisions | Implemented user-specific nonce |
+| L-03 | Low | DoS via excessive schedules | Added schedule limit per user |
+| L-04 | Low | Unrestricted rBTC withdrawal | Added `onlyDcaManager` modifier |
 
 ## Second Audit: June 2025
 
@@ -53,14 +55,15 @@ The follow-up audit reviewed:
 
 ### Key Findings & Resolutions
 
-| Severity | Finding | Resolution |
-|----------|---------|------------|
-| Low | Minor oracle edge case | Added additional validation |
-| Info | Code style suggestions | Applied where appropriate |
+| ID | Severity | Finding | Resolution |
+|----|----------|---------|------------|
+| L-01 | Low | Oracle price staleness check | Implemented `getPriceInfo()` validation |
+| I-01 | Info | Immutable oracle address | Added owner-controlled oracle update function |
 
 ## Auditor Background
 
-**Ivan Fitro** is an independent smart contract security researcher with experience auditing DeFi protocols. His work focuses on Solidity security, access control, and economic attack vectors.
+**Ivan Fitro** is an independent smart contract security researcher with experience auditing DeFi protocols.  
+According to the project audit notes, he later joined Pashov Audit Group (late 2025) and OpenZeppelin (March 2026).
 
 ## Ongoing Security
 
