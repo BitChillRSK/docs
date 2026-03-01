@@ -4,37 +4,104 @@ sidebar_position: 4
 
 # Withdrawing rBTC
 
-Purchased rBTC is accumulated per user in each token handler and withdrawn through DcaManager.
+As your DCA schedule executes purchases, rBTC accumulates in the handler contracts. You can withdraw your rBTC at any time.
 
-## Accounting Model
+## Understanding rBTC Accumulation
 
-Accumulated rBTC is **not stored per schedule ID**. It is tracked per user per handler.
+BitChill uses a **pull-based withdrawal pattern**. This means:
 
-A handler is identified by `(token, lendingProtocolIndex)`.
+- Purchased rBTC stays in handler contracts until you withdraw
+- You control when to take custody of your Bitcoin
+- Withdrawals are independent from your active schedules
+
+### Important: rBTC Tracking
+
+Your accumulated rBTC is tracked **per handler**, not per schedule:
+
+```
+Handler = Token + Lending Protocol
+```
+
+For example:
+- All your DOC + Tropykus schedules → combined rBTC in one handler
+- All your DOC + Sovryn schedules → combined rBTC in another handler
+
+This means if you have 3 schedules with DOC + Tropykus, the rBTC from all of them accumulates together.
+
+## Checking Your Balance
+
+Before withdrawing, you can check your accumulated rBTC balance:
+
+1. Go to the BitChill app dashboard
+2. View your accumulated rBTC per handler
+3. Or check on-chain using the handler's `getAccumulatedRbtc(address)` function
 
 ## Withdrawal Methods
 
-### Single handler
+### Option 1: Withdraw from Specific Handler
 
-Use:
+Use when you want to withdraw from a specific token + lending protocol combination:
 
-- `withdrawRbtcFromTokenHandler(token, lendingProtocolIndex)`
+```solidity
+withdrawRbtcFromTokenHandler(token, lendingProtocolIndex)
+```
 
-### Multiple handlers
+**Example**: Withdraw rBTC from your DOC + Tropykus handler.
 
-Use:
+### Option 2: Withdraw from All Handlers
 
-- `withdrawAllAccumulatedRbtc(tokens[], lendingProtocolIndexes[])`
+Use to withdraw all accumulated rBTC across multiple handlers at once:
 
-DcaManager iterates those combinations, skips missing handlers, and withdraws where user balance is non-zero.
+```solidity
+withdrawAllAccumulatedRbtc(tokens[], lendingProtocolIndexes[])
+```
 
-## Notes
+**Example**: Withdraw from both DOC + Tropykus and USDRIF + Tropykus in one transaction.
 
-- If no accumulated rBTC exists for a handler, nothing is withdrawn for that pair.
-- rBTC withdrawal is independent from schedule deletion.
-- For Uniswap-based handlers, WRBTC is unwrapped before native rBTC transfer to user.
+The function iterates through each combination and withdraws where your balance is non-zero.
+
+## Step-by-Step Withdrawal
+
+1. **Connect Wallet**: Ensure your wallet is connected to BitChill
+2. **Navigate to Withdraw**: Go to your dashboard or schedules page
+3. **Select Handler(s)**: Choose which handlers to withdraw from
+4. **Review Amount**: Check the rBTC amount to be withdrawn
+5. **Confirm Transaction**: Approve the withdrawal in your wallet
+6. **Receive rBTC**: rBTC is sent to your wallet address
+
+## Technical Notes
+
+### WRBTC Unwrapping
+
+For Uniswap-based handlers (USDRIF), the swap produces WRBTC (wrapped rBTC). The withdrawal process automatically unwraps WRBTC to native rBTC before sending to you.
+
+### Zero Balance Handling
+
+If a handler has no accumulated rBTC for you, the withdrawal function simply skips it without reverting.
+
+### Schedule Independence
+
+Withdrawing rBTC does **not** affect your active schedules:
+- Your schedules continue running
+- Your stablecoin balance remains unchanged
+- Only the accumulated rBTC is withdrawn
+
+### Deleting Schedules
+
+Deleting a schedule does **not** automatically withdraw your rBTC. Always withdraw your rBTC before or after deleting schedules.
+
+## Transaction Costs
+
+Withdrawing rBTC requires a small gas fee paid in rBTC.
+
+Estimated gas: ~0.0002 rBTC per handler
+
+## Bridging to Bitcoin
+
+After withdrawing rBTC, you can bridge it to Bitcoin mainnet using the [Powpeg](https://app.rsk.co/powpeg).
 
 ## Next Steps
 
-- [Manage schedules](/docs/user-guide/manage-schedules)
+- [Manage your schedules](/docs/user-guide/manage-schedules)
+- [Understanding fees](/docs/user-guide/fees)
 - [FAQ](/docs/resources/faq)

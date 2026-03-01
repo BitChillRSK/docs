@@ -4,64 +4,92 @@ sidebar_position: 1
 
 # How DCA Works
 
-Dollar Cost Averaging (DCA) means buying a fixed amount at recurring intervals. BitChill automates this on-chain.
+Dollar Cost Averaging (DCA) is an investment strategy where you buy a fixed amount of an asset at regular intervals, regardless of price. This approach:
 
-## BitChill Execution Model
+- **Reduces timing risk**: You don't need to predict market tops or bottoms
+- **Smooths out volatility**: Your average purchase price is more stable over time
+- **Removes emotion**: Automated purchases prevent panic selling or FOMO buying
+- **Builds discipline**: Consistent investing regardless of market conditions
 
-### 1. Create a Schedule
+## Traditional DCA vs BitChill
 
-You set:
+| Aspect | Traditional DCA | BitChill |
+|--------|----------------|----------|
+| Execution | Manual (remember to buy) | Automatic (smart contracts) |
+| Frequency | Self-discipline required | Guaranteed on schedule |
+| Idle funds | Sit in exchange/wallet | Earn yield in lending protocols |
+| Custody | Often on exchanges | Non-custodial, your keys |
+| Transparency | Trust the exchange | Verifiable on-chain |
 
-- `token` (DOC or USDRIF)
-- `depositAmount`
-- `purchaseAmount`
-- `purchasePeriod` (seconds)
-- `lendingProtocolIndex` (for supported handlers)
+## How BitChill Automates DCA
 
-Contract checks include:
+### Step 1: Create Your Schedule
 
-- `depositAmount > 0`
+When creating a schedule in BitChill, you configure:
+
+- **Token**: Choose DOC or USDRIF as your stablecoin
+- **Deposit Amount**: How much to deposit initially
+- **Purchase Amount**: How much to convert to rBTC each period
+- **Purchase Period**: How often (1, 2, or 4 weeks)
+- **Lending Protocol**: Where your stablecoins earn yield (Tropykus or Sovryn)
+
+**Contract validations:**
 - `purchaseAmount >= configuredTokenMinimum`
 - `purchaseAmount <= currentScheduleBalance / 2`
 - `purchasePeriod >= configuredMinimumPeriod`
 
-### 2. Funds Are Held by the Token Handler
+### Step 2: Your Stablecoins Earn Yield
 
-After schedule creation, the selected handler receives the stablecoin. If that handler includes lending integration, funds are deposited to the lending protocol and represented internally by lending-token accounting.
+After creating a schedule, your stablecoins are deposited into the selected lending protocol:
 
-### 3. Purchases Are Triggered Periodically
+- **Tropykus**: Compound-style lending (kDOC, kUSDRIF tokens)
+- **Sovryn**: Lending pool integration (iSUSD)
 
-A wallet with `SWAPPER_ROLE` executes purchases by calling DcaManager purchase functions.
+Your funds earn interest while waiting to be swapped for rBTC.
 
-For each schedule purchase:
+### Step 3: Automatic Periodic Purchases
 
-1. Schedule checks run (`scheduleId`, period elapsed, sufficient balance)
-2. Schedule `tokenBalance` is reduced by `purchaseAmount`
-3. Handler redeems required stablecoin (from lending if applicable)
-4. Fee is charged by handler rules
-5. Net amount is swapped to rBTC (MoC for DOC handlers, Uniswap for DEX handlers)
+At each scheduled interval, the BitChill swapper infrastructure:
 
-### 4. rBTC Is Accumulated per Handler
+1. Verifies the purchase period has elapsed
+2. Withdraws the purchase amount from lending
+3. Deducts a small protocol fee
+4. Swaps the remaining amount for rBTC via Money on Chain (DOC) or Uniswap V3 (USDRIF)
+5. Credits the purchased rBTC to your account
 
-Purchased rBTC is tracked in handler storage as:
+### Step 4: rBTC Accumulates in Handlers
 
-- `mapping(user => accumulatedRbtc)`
+Purchased rBTC is tracked in handler storage:
 
-That means rBTC is not stored per schedule ID; it is stored per user per handler.
+```
+mapping(user => accumulatedRbtc)
+```
 
-### 5. User Withdrawals
+**Important**: rBTC is tracked per user **per handler** (token + lending protocol combination), not per individual schedule. If you have multiple schedules with the same token and lending protocol, the rBTC accumulates together.
 
-Users can withdraw:
+### Step 5: Withdraw When Ready
 
-- **rBTC**: from one handler (`withdrawRbtcFromTokenHandler`) or many (`withdrawAllAccumulatedRbtc`)
-- **stablecoin principal**: with `withdrawToken` or by deleting schedule
-- **interest**: via `withdrawAllAccumulatedInterest` or `withdrawTokenAndInterest`
+BitChill uses a "pull" pattern for withdrawals. Your rBTC stays in the handler contracts until you're ready to withdraw:
 
-## Notes on Period Presets
+- **Withdraw from one handler**: `withdrawRbtcFromTokenHandler`
+- **Withdraw from all handlers**: `withdrawAllAccumulatedRbtc`
+- **Withdraw stablecoin principal**: `withdrawToken` or delete the schedule
+- **Withdraw accrued interest**: `withdrawAllAccumulatedInterest`
 
-The frontend currently offers weekly presets (1, 2, 4 weeks), but contract-level validation is based on the configurable minimum period in seconds.
+## Example DCA Journey
+
+Let's say you deposit 1000 DOC with a 100 DOC weekly purchase amount:
+
+| Week | Schedule Balance | Purchase | Accumulated rBTC | Notes |
+|------|-----------------|----------|------------------|-------|
+| 0 | 1000 DOC | - | 0 | Initial deposit |
+| 1 | 900 DOC | 100 DOC | ~0.001 BTC | First purchase |
+| 2 | 800 DOC | 100 DOC | ~0.002 BTC | Price might vary |
+| ... | ... | ... | ... | Continues until balance runs out |
+
+Meanwhile, your remaining DOC balance earns interest in Tropykus!
 
 ## Next Steps
 
-- [Supported assets and protocols](/docs/getting-started/supported-assets)
+- [See supported tokens and protocols](/docs/getting-started/supported-assets)
 - [Create your first schedule](/docs/user-guide/create-schedule)

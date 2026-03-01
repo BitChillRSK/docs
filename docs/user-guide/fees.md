@@ -4,54 +4,102 @@ sidebar_position: 6
 
 # Fees
 
-BitChill charges protocol fees during purchase execution in handler contracts.
+BitChill charges a small protocol fee on each purchase to sustain development and infrastructure.
 
-## Where Fees Are Applied
+## Fee Structure
 
-For each purchase:
+Fees are charged **during each purchase**, not on deposits or withdrawals. The fee is:
 
-1. Stablecoin amount is redeemed for the purchase
-2. Fee is computed by handler fee settings
-3. Fee is transferred to configured fee collector
-4. Net amount is swapped to rBTC
+1. Calculated based on the purchase amount
+2. Deducted from the stablecoin before swapping
+3. Sent to the protocol fee collector
+4. The remaining amount is swapped for rBTC
 
-## Fee Model in Contracts
+**You receive rBTC based on the net amount after fees.**
 
-`FeeHandler` stores:
+## Current Fee Rate
 
-- `minFeeRate`
-- `maxFeeRate`
-- `feePurchaseLowerBound`
-- `feePurchaseUpperBound`
+The current production fee is **1% flat** on each purchase.
 
-Computation:
+| Purchase Amount | Fee Rate | Fee Amount | You Receive |
+|-----------------|----------|------------|-------------|
+| 50 DOC | 1% | 0.50 DOC | ~49.50 DOC worth of rBTC |
+| 100 DOC | 1% | 1.00 DOC | ~99.00 DOC worth of rBTC |
+| 500 DOC | 1% | 5.00 DOC | ~495.00 DOC worth of rBTC |
 
-- if `minFeeRate == maxFeeRate`, fee is flat
-- if `amount <= lowerBound`, use max fee rate
-- if `amount >= upperBound`, use min fee rate
-- else interpolate linearly between max and min
+:::tip Compare to Alternatives
+BitChill's 1% fee is competitive with:
+- **Centralized exchanges**: 0.5-1.5% trading fees + withdrawal fees
+- **Manual DEX swaps**: Gas costs can exceed 1% on small amounts
+- **Recurring buy services**: Often charge 1-2% + spread
+:::
 
-All rates are divided by `10_000`.
+## Sliding Scale Fee Model
 
-## Current Deployment Defaults (from deployment constants)
+While current deployment uses a flat fee, the contracts support a **sliding scale** where larger purchases pay lower percentage fees:
 
-- `minFeeRate = 100`
-- `maxFeeRate = 100` (production default, flat 1%)
-- lower bound: `1000` tokens
-- upper bound: `100000` tokens
+| Parameter | Description |
+|-----------|-------------|
+| `minFeeRate` | Lowest fee rate (for large purchases) |
+| `maxFeeRate` | Highest fee rate (for small purchases) |
+| `feePurchaseLowerBound` | Below this amount, max rate applies |
+| `feePurchaseUpperBound` | Above this amount, min rate applies |
 
-Because min=max in production defaults, effective fee is flat unless owner updates handler fee params.
+The fee rate interpolates linearly between bounds. Fee rates are expressed in basis points (100 = 1%).
 
-## Gas Responsibility
+### Example Sliding Scale
 
-- Automated periodic purchases are executed by swapper infrastructure.
-- Users still pay gas for their own direct transactions (create/update/withdraw calls).
+If configured as: `minFeeRate=50, maxFeeRate=150, lowerBound=100, upperBound=1000`
 
-## Transparency
+| Purchase | Fee Rate |
+|----------|----------|
+| 50 tokens | 1.5% (max) |
+| 550 tokens | 1.0% (midpoint) |
+| 1000+ tokens | 0.5% (min) |
 
-Fee parameters are on-chain and queryable per handler (`getMinFeeRate`, `getMaxFeeRate`, bounds, collector).
+## What's Not Charged
+
+BitChill does **not** charge fees for:
+
+- ✅ Depositing stablecoins
+- ✅ Withdrawing your stablecoin balance
+- ✅ Withdrawing accumulated rBTC
+- ✅ Creating or modifying schedules
+- ✅ Withdrawing accrued interest
+
+## Gas Costs
+
+### Automated Purchases
+
+The BitChill swapper infrastructure pays gas for executing your scheduled purchases. You don't pay gas for the actual swap transactions.
+
+### User Transactions
+
+You pay gas for transactions you initiate:
+
+| Action | Estimated Gas Cost |
+|--------|-------------------|
+| Create schedule | ~0.0005 rBTC |
+| Modify schedule | ~0.0003 rBTC |
+| Withdraw rBTC | ~0.0002 rBTC |
+| Withdraw interest | ~0.0003 rBTC |
+
+*Gas costs vary based on network conditions.*
+
+## Fee Transparency
+
+All fee parameters are on-chain and publicly queryable:
+
+```solidity
+handler.getMinFeeRate()
+handler.getMaxFeeRate()
+handler.getFeePurchaseLowerBound()
+handler.getFeePurchaseUpperBound()
+handler.getFeeCollector()
+```
 
 ## Next Steps
 
-- [Core contracts](/docs/contracts/core-contracts)
-- [Addresses](/docs/contracts/addresses)
+- [View contract addresses](/docs/contracts/addresses)
+- [Understand the security model](/docs/security/security-model)
+- [FAQ](/docs/resources/faq)

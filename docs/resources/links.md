@@ -86,8 +86,9 @@ Official BitChill resources and related projects.
 
 | Wallet | Platform | Website |
 |--------|----------|---------|
-| **Defiant** | Mobile | [defiantapp.tech](https://defiantapp.tech/) |
+| **Rabby** | Browser | [rabby.io](https://rabby.io/) |
 | **MetaMask** | Browser/Mobile | [metamask.io](https://metamask.io/) |
+| **Defiant** | Mobile | [defiantapp.tech](https://defiantapp.tech/) |
 | **Ledger** | Hardware | [ledger.com](https://www.ledger.com/) |
 
 ### Adding Rootstock to MetaMask

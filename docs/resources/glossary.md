@@ -4,68 +4,95 @@ sidebar_position: 2
 
 # Glossary
 
-### Accumulated rBTC
-rBTC amount tracked per user in a specific token handler, withdrawable via DcaManager.
+Quick reference for terms used throughout BitChill documentation.
 
-### APY
-Annual Percentage Yield shown by lending protocols.
+## Protocol Concepts
 
 ### DCA (Dollar Cost Averaging)
-Buying a fixed amount periodically over time.
+An investment strategy where you buy a fixed amount of an asset at regular intervals, regardless of price. This reduces the impact of volatility over time.
 
-### DcaManager
-Main BitChill contract for schedule management and user-facing actions.
-
-### DOC
-Dollar on Chain stablecoin on Rootstock.
-
-### FeeHandler
-Base module used by handlers to compute and transfer protocol fees.
-
-### Handler
-Concrete contract that combines token handling, optional lending integration, and purchase backend logic for a `(token, lendingProtocolIndex)` route.
-
-### Interest (accrued)
-Difference between user lending-backed value and DcaManager-locked principal for a token/protocol pair.
-
-### iSUSD
-Sovryn lending token used in DOC Sovryn-based handlers.
-
-### kToken
-Tropykus lending token (e.g., kDOC, kUSDRIF).
-
-### Lending Protocol Index
-Numeric identifier used by DcaManager/OperationsAdmin (0=no lending slot, 1=tropykus, 2=sovryn).
-
-### MoC (Money on Chain)
-Protocol used by DOC MoC handlers to redeem DOC for rBTC.
-
-### OperationsAdmin
-Registry + role management contract for handler routing and protocol indexes.
-
-### Purchase Amount
-Stablecoin amount deducted from schedule balance on each execution.
+### Schedule
+A DCA configuration created by a user, specifying the token, purchase amount, period, and lending protocol. Each schedule has a unique ID and tracks its own stablecoin balance.
 
 ### Purchase Period
-Configured seconds between purchases for a schedule, constrained by DcaManager minimum period. Frontend currently offers 1/2/4-week presets.
+The time interval between automatic purchases. BitChill currently offers 1, 2, or 4 week options. The contract stores this in seconds and enforces a minimum.
 
-### Rootstock (RSK)
-EVM-compatible Bitcoin sidechain where BitChill is deployed.
+### Purchase Amount
+The amount of stablecoin converted to rBTC on each scheduled purchase. Must be at least the configured minimum and no more than half the schedule balance.
+
+### Accumulated rBTC
+The rBTC a user has accumulated through DCA purchases. Tracked per user per handler (not per schedule), and withdrawable at any time.
+
+## Smart Contracts
+
+### DcaManager
+The main BitChill contract. Handles schedule creation, updates, deletions, and coordinates with handlers for deposits, purchases, and withdrawals.
+
+### OperationsAdmin
+Registry and role management contract. Maps tokens and lending protocol indexes to their handlers, and manages protocol roles (owner, swapper).
+
+### Handler
+A contract that manages funds for a specific token + lending protocol combination. Handles deposits, lending integration, fee calculation, and purchase execution.
+
+### FeeHandler
+Base contract inherited by handlers. Implements the fee calculation logic (flat or sliding scale) and fee transfers.
+
+### Token Handler
+A specific handler instance, such as "TropykusDocHandler" or "SovrynDocHandler". Each handler has its own accumulated rBTC tracking.
+
+## Tokens & Protocols
 
 ### rBTC
-Native Rootstock token pegged to BTC.
-
-### Schedule ID
-Unique bytes32 identifier for a schedule, validated alongside schedule index.
-
-### SWAPPER_ROLE
-Role allowed to execute purchase functions in DcaManager.
-
-### Token Balance (schedule)
-Per-schedule stablecoin principal tracked in DcaManager.
-
-### Uniswap V3
-DEX backend used by DEX handlers for stablecoin -> WRBTC swap flow.
+Rootstock's native token, pegged 1:1 to Bitcoin. This is what you accumulate through BitChill DCA.
 
 ### WRBTC
-ERC-20 wrapped rBTC token used in DEX swap operations before unwrapping for user withdrawal.
+Wrapped rBTC, an ERC-20 token. Used internally for DEX swaps before being unwrapped for user withdrawals.
+
+### DOC (Dollar on Chain)
+An algorithmic stablecoin from Money on Chain, overcollateralized by Bitcoin. One of the supported deposit tokens.
+
+### USDRIF
+A stablecoin from the RIF ecosystem on Rootstock. One of the supported deposit tokens.
+
+### kToken
+Tropykus lending tokens (kDOC, kUSDRIF). Represent your deposit in Tropykus and accrue value over time as interest.
+
+### iSUSD
+Sovryn's lending token used for DOC deposits. Represents your deposit in Sovryn's lending pool.
+
+## External Protocols
+
+### Rootstock (RSK)
+An EVM-compatible Bitcoin sidechain. BitChill is deployed here, benefiting from Bitcoin's security via merge-mining.
+
+### Tropykus
+A Compound-style lending protocol on Rootstock. BitChill integrates with it for DOC and USDRIF yield generation.
+
+### Sovryn
+A DeFi platform on Rootstock with lending, trading, and margin features. BitChill integrates with its lending pools.
+
+### Money on Chain (MoC)
+The protocol behind DOC. BitChill's DOC handlers redeem DOC for rBTC through MoC.
+
+### Uniswap V3
+A DEX protocol. BitChill's USDRIF handlers use Uniswap V3 pools on Rootstock for swapping.
+
+## Technical Terms
+
+### Schedule ID
+A unique `bytes32` identifier for each schedule. Used alongside the schedule index for validation.
+
+### Lending Protocol Index
+A numeric identifier mapping to lending protocols: 0 = none, 1 = Tropykus, 2 = Sovryn.
+
+### SWAPPER_ROLE
+The access control role that permits calling purchase functions. Assigned to the BitChill automated swapper infrastructure.
+
+### APY (Annual Percentage Yield)
+The annualized return rate from lending protocols. Shown as a percentage.
+
+### Interest (Accrued)
+The difference between your current lending-backed value and your original principal. Withdrawable separately from your schedule balance.
+
+### Pull Pattern
+A design pattern where users must actively withdraw their funds rather than having them automatically sent. BitChill uses this for rBTC withdrawals.

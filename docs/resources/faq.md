@@ -4,69 +4,147 @@ sidebar_position: 1
 
 # Frequently Asked Questions
 
-## What is BitChill?
+## General
 
-BitChill is an on-chain DCA protocol on Rootstock for periodic stablecoin-to-rBTC accumulation.
+### What is BitChill?
 
-## Which tokens are supported?
+BitChill is a decentralized DCA (Dollar Cost Averaging) protocol on Rootstock that lets you automatically accumulate Bitcoin (rBTC) by depositing stablecoins. Your funds earn yield while waiting to be converted.
+
+### Why should I use BitChill instead of manual DCA?
+
+- **Automation**: No need to remember to buy each week
+- **Yield**: Your stablecoins earn interest while waiting
+- **Non-custodial**: You keep control of your funds
+- **Transparent**: Everything happens on-chain
+
+### Is BitChill safe to use?
+
+BitChill contracts are open source and have been audited twice by independent security researchers. However, as with any DeFi protocol, there are inherent risks. See our [Security Model](/docs/security/security-model) for details.
+
+## Supported Assets
+
+### Which tokens can I use?
 
 Current mainnet deployment supports:
 
-- DOC
-- USDRIF
+- **DOC** (Dollar on Chain)
+- **USDRIF**
 
-See the active handler matrix here: [Supported Tokens & Chains](/docs/getting-started/supported-assets).
+See the [active handler matrix](/docs/getting-started/supported-assets#active-handler-matrix).
 
-## Which lending options are available?
+### Which lending protocols are integrated?
 
-Current deployment:
+| Stablecoin | Available Lending Protocols |
+|------------|----------------------------|
+| DOC | Tropykus, Sovryn |
+| USDRIF | Tropykus |
 
-- DOC: Tropykus and Sovryn handlers
-- USDRIF: Tropykus handler
+### How do I get DOC or USDRIF?
 
-## How often can purchases run?
+- **DOC**: Mint at [Money on Chain](https://app.moneyonchain.com) or swap on [Sovryn](https://sovryn.app)
+- **USDRIF**: Acquire through the RIF ecosystem or swap on Rootstock DEXes
 
-The frontend currently offers 1/2/4-week presets. Contract validation enforces a configurable minimum period (`getMinPurchasePeriod`).
+## Using BitChill
 
-## What is the minimum purchase amount?
+### How often can purchases run?
 
-Minimum purchase amount is configurable in DcaManager:
+The app offers three presets:
+- Weekly (every 1 week)
+- Bi-weekly (every 2 weeks)
+- Monthly (every 4 weeks)
 
-- token-specific minimum if set
-- otherwise default minimum
+The contract enforces a configurable minimum period in seconds.
 
-Read with `getTokenMinPurchaseAmount(token)`.
+### What is the minimum purchase amount?
 
-## Can I have multiple schedules?
+The minimum is configurable per token by the protocol owner. Check the current value with `getTokenMinPurchaseAmount(token)`.
 
-Yes, up to `maxSchedulesPerToken` for each user+token pair.
+Additionally, your purchase amount must satisfy: `purchaseAmount <= balance / 2`
 
-## Does withdrawing/deleting a schedule automatically include interest?
+### Can I have multiple schedules?
 
-Not by default.
+Yes! You can have up to `maxSchedulesPerToken` schedules for each token. This lets you run different strategies simultaneously.
 
-- `withdrawToken` / `deleteDcaSchedule` handle schedule principal.
-- Interest is withdrawn via `withdrawAllAccumulatedInterest` or `withdrawTokenAndInterest`.
+### Can I modify my schedule after creating it?
 
-## Is accumulated rBTC tracked per schedule?
+Yes, you can:
+- Add more funds (top up)
+- Withdraw partial funds
+- Update purchase amount (within validation rules)
+- Update purchase period
+- Delete the schedule entirely
 
-No. rBTC is tracked per user per token handler (token + lending protocol pair).
+### What happens when my schedule runs out of funds?
 
-## Are fees fixed or variable?
+Purchases simply stop until you add more funds. Your schedule remains active and will resume once you deposit more stablecoins.
 
-Both are possible. Fee behavior is handler-configurable:
+## Yield & Interest
 
-- flat when `minFeeRate == maxFeeRate`
-- sliding when rates differ
+### How do I earn yield?
 
-## Who pays gas for automated purchases?
+Your stablecoins are automatically deposited into the lending protocol you selected (Tropykus or Sovryn). You earn interest on your full balance, including funds waiting to be swapped.
 
-Automated purchase transactions are executed by swapper infrastructure. Users pay gas for their own direct actions (create/update/withdraw calls).
+### How do I withdraw my interest?
 
-## Are contracts upgradeable?
+Interest is tracked separately from your principal. Use these functions:
+- `withdrawAllAccumulatedInterest`: Get interest from all handlers
+- `withdrawTokenAndInterest`: Withdraw both principal and interest
 
-Core contracts in this repository are not proxy-upgradeable. New versions are introduced by new deployments/registrations.
+**Important**: Deleting a schedule or withdrawing tokens does NOT automatically include interest.
 
-## Where can I review audits?
+### What APY can I expect?
 
-[Audit Reports](/docs/security/audits)
+Yields vary based on market conditions and lending protocol utilization. Check current rates on [Tropykus](https://app.tropykus.com) or [Sovryn](https://sovryn.app).
+
+## Fees
+
+### What fees does BitChill charge?
+
+BitChill uses a configurable fee model that can be:
+- **Flat**: Same percentage regardless of purchase amount
+- **Sliding scale**: Lower fees for larger purchases
+
+Current defaults are set by the protocol owner. Fees are deducted from each purchase before swapping.
+
+### Who pays gas for automated purchases?
+
+The BitChill swapper infrastructure pays gas for automated purchase execution. You only pay gas for your own transactions (creating schedules, withdrawing, etc.).
+
+## Withdrawals
+
+### How do I withdraw my rBTC?
+
+BitChill uses a "pull" pattern. Your purchased rBTC accumulates in handler contracts until you withdraw:
+
+- **Single handler**: `withdrawRbtcFromTokenHandler`
+- **All handlers**: `withdrawAllAccumulatedRbtc`
+
+### Is rBTC tracked per schedule?
+
+**No.** rBTC is tracked per user per handler (token + lending protocol combination). If you have multiple DOC+Tropykus schedules, the rBTC accumulates together.
+
+### Do I need to delete my schedule to withdraw?
+
+No! You can withdraw rBTC at any time without affecting your active schedules.
+
+## Technical & Security
+
+### Are the contracts upgradeable?
+
+Core BitChill contracts are **not** proxy-upgradeable. New features are introduced through new deployments and handler registrations.
+
+### Where are the contracts deployed?
+
+See [Contract Addresses](/docs/contracts/addresses) for the full list.
+
+### Where can I review the audits?
+
+Audit reports are publicly available: [Audit Reports](/docs/security/audits)
+
+### I found a bug. How do I report it?
+
+For security issues, please report privately via:
+- Twitter: [@BitChillApp](https://x.com/BitChillApp)
+
+For non-sensitive issues:
+- [GitHub Issues](https://github.com/BitChillRSK/dca-contracts/issues)

@@ -5,47 +5,85 @@ slug: /
 
 # What is BitChill?
 
-BitChill is a **decentralized Dollar Cost Averaging (DCA) protocol** on [Rootstock](https://rootstock.io/). It lets users automate periodic Bitcoin accumulation by depositing stablecoins and executing scheduled purchases of rBTC.
+BitChill is a **decentralized Dollar Cost Averaging (DCA) protocol** built on [Rootstock](https://rootstock.io/), the Bitcoin sidechain. It enables users to automatically accumulate Bitcoin (rBTC) by depositing stablecoins and executing periodic purchases.
 
 ## Why BitChill?
 
-- **Automated DCA**: Configure a schedule once, then purchases are executed on your behalf by the protocol swapper role
-- **Yield Integration**: Deposited stablecoins can be routed through supported lending handlers
-- **Non-custodial user flows**: Users manage their own schedules and withdrawals directly from smart contracts
-- **Transparent execution**: Schedules, purchases, and balances are verifiable on-chain
-- **Bitcoin ecosystem alignment**: Built on Rootstock
+Dollar Cost Averaging is a proven investment strategy that reduces the impact of volatility by spreading purchases over time. BitChill automates this process on-chain, providing:
+
+- **Automated Purchases**: Set your schedule once, and BitChill handles the rest
+- **Yield Generation**: Your stablecoins earn yield in lending protocols while waiting to be swapped
+- **Non-Custodial**: You maintain full control of your funds at all times
+- **Transparent**: All operations are executed on-chain with verifiable smart contracts
+- **Bitcoin-Native**: Built on Rootstock, secured by Bitcoin's hashpower
 
 ## How It Works
 
 ```mermaid
-flowchart LR
-    A[Deposit Stablecoins] --> B[Lending Handler]
-    B --> C[Periodic Purchase Execution]
-    C --> D[rBTC Accumulated per Handler]
-    D --> E[User Withdraws rBTC]
+flowchart TB
+    subgraph Users [User Layer]
+        User[User Wallet]
+        FE[BitChill dApp]
+    end
+    
+    subgraph Protocol [BitChill Protocol]
+        DCA[DcaManager Contract]
+        TH[Token Handlers]
+        FH[FeeHandler]
+        TH --- FH
+    end
+    
+    subgraph Lending [Lending Protocols]
+        Tropykus[Tropykus]
+        Sovryn[Sovryn]
+    end
+    
+    subgraph DEX [DEX Layer]
+        UniV3[Uniswap V3]
+        MoC[Money on Chain]
+    end
+    
+    User -->|"1. Deposit stablecoins"| FE
+    FE --> DCA
+    DCA --> TH
+    TH -->|"2. Earn yield"| Lending
+    TH -->|"3. Periodic swap"| DEX
+    DEX -->|"4. rBTC stored"| TH
+    TH -->|"5. User withdraws"| User
 ```
 
-1. **Create schedule**: Choose token, deposit amount, purchase amount, purchase period, and lending protocol index.
-2. **Deposit handling**: The configured token handler receives funds and, when applicable, routes them into the lending integration.
-3. **Periodic execution**: Authorized swapper calls `buyRbtc` / `batchBuyRbtc` when schedules are due.
-4. **rBTC accounting**: Purchased rBTC is tracked per user **per token handler** (token + lending protocol pair).
-5. **Withdrawals**: Users withdraw accumulated rBTC from a specific handler or across multiple handlers.
+1. **Deposit**: Deposit DOC or USDRIF stablecoins into a DCA schedule
+2. **Earn**: Your stablecoins are deposited into Tropykus or Sovryn lending protocols, earning yield while waiting
+3. **Swap**: Based on your chosen period (1, 2, or 4 weeks), a portion of your stablecoins is swapped for rBTC
+4. **Accumulate**: Purchased rBTC is stored per user per handler, ready for withdrawal
+5. **Withdraw**: Claim your accumulated rBTC whenever you want
 
-## Important Notes
+## Key Features
 
-- The app currently offers **1, 2, and 4 week** presets, while the contract enforces a configurable minimum period.
-- Purchase amount must satisfy contract validation (minimum configured by owner, and `purchaseAmount <= balance / 2`).
-- Interest is tracked separately from schedule balance and can be withdrawn via dedicated interest withdrawal functions.
+| Feature | Description |
+|---------|-------------|
+| **Flexible Periods** | Choose 1, 2, or 4 week purchase intervals |
+| **Multiple Stablecoins** | Support for DOC and USDRIF |
+| **Yield Earning** | Integration with Tropykus and Sovryn lending |
+| **Low Fees** | Configurable fee scale based on purchase amount |
+| **Pull-Based Withdrawals** | Withdraw your rBTC when you're ready |
+
+## Important Technical Notes
+
+- Purchase amount must satisfy contract validation: minimum configured by owner, and `purchaseAmount <= balance / 2`
+- rBTC is tracked per user **per token handler** (token + lending protocol pair), not per schedule
+- Interest is tracked separately from schedule balance and can be withdrawn via dedicated functions
 
 ## Security
 
-BitChill contracts are open source and audited. See:
+BitChill smart contracts have been audited by independent security researchers. All audit reports are publicly available.
 
-- [Audit Reports](/docs/security/audits)
-- [Security Model](/docs/security/security-model)
+[View Audit Reports →](/docs/security/audits)
 
 ## Get Started
 
+Ready to start DCA'ing into Bitcoin?
+
 1. [Learn how DCA works](/docs/getting-started/how-dca-works)
-2. [See supported assets](/docs/getting-started/supported-assets)
-3. [Create your first schedule](/docs/user-guide/create-schedule)
+2. [See supported tokens and chains](/docs/getting-started/supported-assets)
+3. [Connect your wallet and create a schedule](/docs/user-guide/connect-wallet)
