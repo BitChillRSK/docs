@@ -65,8 +65,9 @@ docs/
 ## Links
 
 - **Website**: [bitchill.app](https://bitchill.app)
+- **App**: [dca.bitchill.app](https://dca.bitchill.app)
 - **GitHub**: [BitChillRSK](https://github.com/BitChillRSK)
-- **Twitter**: [@BitChillRSK](https://twitter.com/BitChillRSK)
+- **Twitter**: [@BitChillApp](https://x.com/BitChillApp)
 
 ## License
 

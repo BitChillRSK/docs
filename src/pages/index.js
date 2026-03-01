@@ -23,7 +23,7 @@ function HomepageHeader() {
           </Link>
           <Link
             className="button button--outline button--secondary button--lg"
-            href="https://bitchill.app"
+            href="https://dca.bitchill.app"
             style={{marginLeft: '1rem'}}>
             Launch App
           </Link>

@@ -143,15 +143,15 @@ sequenceDiagram
     participant DcaManager
     participant TokenHandler
     participant LendingProtocol
-    participant DEX
+    participant MoC/Uniswap
     
     Swapper->>DcaManager: batchBuyRbtc()
     DcaManager->>TokenHandler: buyRbtc()
     TokenHandler->>LendingProtocol: redeem(kTokens)
     LendingProtocol-->>TokenHandler: stablecoins
     TokenHandler->>TokenHandler: calculateFee()
-    TokenHandler->>DEX: swap(stablecoins)
-    DEX-->>TokenHandler: rBTC
+    TokenHandler->>MoC/Uniswap: swap(stablecoins)
+    MoC/Uniswap-->>TokenHandler: rBTC
     TokenHandler-->>DcaManager: Purchase complete
 ```
 

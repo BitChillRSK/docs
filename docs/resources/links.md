@@ -13,8 +13,9 @@ Official BitChill resources and related projects.
 | Resource | URL |
 |----------|-----|
 | **Website** | [bitchill.app](https://bitchill.app) |
+| **App** | [dca.bitchill.app](https://dca.bitchill.app) |
 | **Documentation** | [docs.bitchill.app](https://docs.bitchill.app) |
-| **Twitter** | [@BitChillRSK](https://twitter.com/BitChillRSK) |
+| **Twitter** | [@BitChillApp](https://x.com/BitChillApp) |
 | **GitHub** | [BitChillRSK](https://github.com/BitChillRSK) |
 
 ### Source Code
@@ -137,7 +138,7 @@ Explorer: https://explorer.rsk.co
 
 ### Get Help
 
-- **Twitter**: [@BitChillRSK](https://twitter.com/BitChillRSK) - DMs open
+- **Twitter**: [@BitChillApp](https://x.com/BitChillApp) - DMs open
 - **GitHub Issues**: For bug reports and feature requests
 
 ### Rootstock Community

@@ -248,4 +248,4 @@ When integrating:
 
 For integration support:
 - GitHub Issues: [BitChillRSK/dca-contracts](https://github.com/BitChillRSK/dca-contracts/issues)
-- Twitter: [@BitChillRSK](https://twitter.com/BitChillRSK)
+- Twitter: [@BitChillApp](https://x.com/BitChillApp)

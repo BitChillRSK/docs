@@ -8,13 +8,13 @@ To use BitChill, you'll need a Web3 wallet configured for Rootstock.
 
 ## Supported Wallets
 
-BitChill uses WalletConnect, which supports a wide range of wallets:
+BitChill supports multiple connection methods:
 
-- **Defiant** (recommended for Rootstock)
+- **Rabby** (recommended - most users connect via Rabby)
 - **MetaMask**
-- **Trust Wallet**
+- **Defiant** (optimized for Rootstock)
 - **Ledger** (via MetaMask or other compatible wallets)
-- **Any WalletConnect-compatible wallet**
+- **WalletConnect** - any WalletConnect-compatible wallet
 
 ## Configuring Your Wallet for Rootstock
 
@@ -39,11 +39,11 @@ If your wallet doesn't automatically detect Rootstock, add it manually:
 
 ## Connecting to BitChill
 
-1. **Visit the App**: Go to [bitchill.app](https://bitchill.app)
+1. **Visit the App**: Go to [dca.bitchill.app](https://dca.bitchill.app)
 
 2. **Click Connect**: Click the "Connect Wallet" button in the top right corner
 
-3. **Select Your Wallet**: Choose your wallet from the WalletConnect modal
+3. **Select Your Wallet**: Choose your wallet (Rabby, MetaMask, WalletConnect, etc.)
 
 4. **Approve Connection**: Confirm the connection request in your wallet
 

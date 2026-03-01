@@ -149,7 +149,7 @@ For critical issues:
 
 ### How do I report a security issue?
 
-Please disclose responsibly via Twitter DM to [@BitChillRSK](https://twitter.com/BitChillRSK). Do not disclose publicly before we have a chance to address it.
+Please disclose responsibly via Twitter DM to [@BitChillApp](https://x.com/BitChillApp). Do not disclose publicly before we have a chance to address it.
 
 ---
 
@@ -184,5 +184,5 @@ Network settings:
 
 ## Still Have Questions?
 
-- Twitter: [@BitChillRSK](https://twitter.com/BitChillRSK)
+- Twitter: [@BitChillApp](https://x.com/BitChillApp)
 - GitHub: [BitChillRSK](https://github.com/BitChillRSK)

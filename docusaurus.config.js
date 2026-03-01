@@ -69,7 +69,7 @@ const config = {
             label: 'Docs',
           },
           {
-            href: 'https://bitchill.app',
+            href: 'https://dca.bitchill.app',
             label: 'App',
             position: 'left',
           },
@@ -79,7 +79,7 @@ const config = {
             position: 'right',
           },
           {
-            href: 'https://twitter.com/BitChillRSK',
+            href: 'https://x.com/BitChillApp',
             label: 'Twitter',
             position: 'right',
           },
@@ -110,7 +110,7 @@ const config = {
             items: [
               {
                 label: 'Twitter',
-                href: 'https://twitter.com/BitChillRSK',
+                href: 'https://x.com/BitChillApp',
               },
               {
                 label: 'GitHub',
@@ -123,7 +123,7 @@ const config = {
             items: [
               {
                 label: 'Launch App',
-                href: 'https://bitchill.app',
+                href: 'https://dca.bitchill.app',
               },
               {
                 label: 'Security & Audits',

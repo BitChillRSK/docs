@@ -116,7 +116,7 @@ Every finding from both audits has been addressed and verified. The protocol has
 If you discover a security vulnerability:
 
 1. **Do NOT** disclose publicly
-2. Contact us privately via Twitter DM: [@BitChillRSK](https://twitter.com/BitChillRSK)
+2. Contact us privately via Twitter DM: [@BitChillApp](https://x.com/BitChillApp)
 3. Provide detailed reproduction steps
 4. Allow reasonable time for remediation
 
