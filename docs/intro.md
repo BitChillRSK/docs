@@ -76,7 +76,7 @@ flowchart TB
 
 ## Security
 
-BitChill smart contracts have been audited by independent security researchers. All audit reports are publicly available.
+BitChill smart contracts have been audited by an independent security researcher. Audit reports are publicly available.
 
 [View Audit Reports →](/docs/security/audits)
 

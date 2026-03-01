@@ -96,18 +96,51 @@ USDRIF handlers swap via Uniswap V3 pools on Rootstock. The swap path and fee ti
 
 ### Getting rBTC
 
-- **Powpeg**: Bridge BTC from Bitcoin mainnet via [Powpeg](https://app.rsk.co/powpeg)
-- **Exchanges**: Purchase on exchanges like Gate.io, MEXC, or Bitfinex
+You'll need a small amount of rBTC in your Rootstock wallet to pay gas before using BitChill.
+
+- **Native PowPeg (BTC → rBTC)**  
+  Bridge BTC from Bitcoin mainnet via Rootstock's trust-minimized PowPeg:  
+  [powpeg.rootstock.io](https://powpeg.rootstock.io/)
+
+- **Cross-chain swaps (crypto → rBTC)**  
+  Use cross-chain aggregators and bridges (e.g. [Jumper](https://jumper.exchange/), [Rubic](https://rubic.exchange/), [Boltz](https://boltz.exchange/)) to swap from other networks (Ethereum, BSC, etc.) into rBTC on Rootstock.  
+  Connect your wallet, choose your source chain/token, and set rBTC on Rootstock as the destination.
+
+- **Fiat or card on-ramps (fiat → rBTC)**  
+  Services like [Mt Pelerin](https://www.mtpelerin.com/) or [Onramp](https://onramp.money/) let you buy rBTC directly with bank transfer or card and withdraw to a Rootstock address.
+
+- **Peer-to-peer**  
+  You can also buy rBTC from another Rootstock user (OTC), sending them BTC, fiat, or another asset in exchange for rBTC to your wallet.
+
+:::tip Verify the network
+Always verify that the service you use explicitly supports **Rootstock rBTC** (smart Bitcoin) and not some unrelated token that happens to use the same ticker on another chain.
+:::
 
 ### Getting DOC
 
-- **Money on Chain**: Mint DOC at [app.moneyonchain.com](https://app.moneyonchain.com)
-- **Sovryn**: Swap rBTC for DOC at [sovryn.app](https://sovryn.app)
+DOC is a Bitcoin-collateralized stablecoin on Rootstock.
+
+- **Mint with rBTC (protocol-native)**  
+  Use the Money On Chain dApp to mint DOC by depositing rBTC as collateral:  
+  [dapp.moneyonchain.com](https://dapp.moneyonchain.com)
+
+- **Swap on Rootstock DEXs**  
+  Swap rBTC, USDT or other Rootstock tokens for DOC on DEXs such as [OKU Trade](https://oku.trade/app/rootstock/swap)
+
+- **From USDT on other networks (via Stargate + OKU)**  
+  1. Bridge USDT to Rootstock using [Stargate](https://stargate.finance/) (LayerZero)
+  2. On Rootstock, use [OKU Trade](https://oku.trade/app/rootstock/swap) to swap USDT → DOC
 
 ### Getting USDRIF
 
-- **RIF on Chain**: Acquire through RIF ecosystem
-- **DEX**: Swap on Rootstock DEXes
+USDRIF is a stablecoin from the RIF ecosystem.
+
+- **Mint via RIF on Chain**  
+  Mint USDRIF through the RIF on Chain protocol:  
+  [rif.moneyonchain.com](https://rif.moneyonchain.com/)
+
+- **Swap on Rootstock DEXs**  
+  Swap rBTC or other tokens for USDRIF on [OKU Trade](https://oku.trade/app/rootstock/swap)
 
 ## Next Steps
 
