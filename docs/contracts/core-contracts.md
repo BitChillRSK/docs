@@ -4,336 +4,125 @@ sidebar_position: 2
 
 # Core Contracts
 
-Detailed documentation of BitChill's main smart contracts.
-
 ## DcaManager
 
-The central contract managing all DCA schedules and user interactions.
+Primary user-entry contract.
 
-### Key Functions
-
-#### Schedule Management
+### Key write functions
 
 ```solidity
-function createDcaSchedule(
-    address token,
-    uint256 depositAmount,
-    uint256 purchaseAmount,
-    uint256 purchasePeriod,
-    uint256 lendingProtocolIndex
-) external
+function createDcaSchedule(address token, uint256 depositAmount, uint256 purchaseAmount, uint256 purchasePeriod, uint256 lendingProtocolIndex) external;
+function updateDcaSchedule(address token, uint256 scheduleIndex, bytes32 scheduleId, uint256 depositAmount, uint256 purchaseAmount, uint256 purchasePeriod) external;
+function deleteDcaSchedule(address token, uint256 scheduleIndex, bytes32 scheduleId) external;
+
+function depositToken(address token, uint256 scheduleIndex, bytes32 scheduleId, uint256 depositAmount) external;
+function withdrawToken(address token, uint256 scheduleIndex, bytes32 scheduleId, uint256 withdrawalAmount) external;
+function withdrawTokenAndInterest(address token, uint256 scheduleIndex, bytes32 scheduleId, uint256 withdrawalAmount, uint256 lendingProtocolIndex) external;
+
+function buyRbtc(address buyer, address token, uint256 scheduleIndex, bytes32 scheduleId) external;
+function batchBuyRbtc(address[] calldata buyers, address token, uint256[] calldata scheduleIndexes, bytes32[] calldata scheduleIds, uint256[] calldata purchaseAmounts, uint256 lendingProtocolIndex) external;
+
+function withdrawRbtcFromTokenHandler(address token, uint256 lendingProtocolIndex) external;
+function withdrawAllAccumulatedRbtc(address[] calldata tokens, uint256[] calldata lendingProtocolIndexes) external;
+function withdrawAllAccumulatedInterest(address[] calldata tokens, uint256[] calldata lendingProtocolIndexes) external;
 ```
 
-Creates a new DCA schedule with the specified parameters.
-
-**Parameters**:
-- `token`: Stablecoin address (DOC or USDRIF)
-- `depositAmount`: Initial deposit amount
-- `purchaseAmount`: Amount to swap each period
-- `purchasePeriod`: Time between purchases (seconds)
-- `lendingProtocolIndex`: Lending protocol (1=Tropykus, 2=Sovryn)
-
----
+### Key read functions
 
 ```solidity
-function updateDcaSchedule(
-    address token,
-    uint256 scheduleIndex,
-    bytes32 scheduleId,
-    uint256 depositAmount,
-    uint256 purchaseAmount,
-    uint256 purchasePeriod
-) external
+function getDcaSchedules(address user, address token) external view returns (DcaDetails[] memory);
+function getScheduleTokenBalance(address user, address token, uint256 scheduleIndex) external view returns (uint256);
+function getSchedulePurchaseAmount(address user, address token, uint256 scheduleIndex) external view returns (uint256);
+function getSchedulePurchasePeriod(address user, address token, uint256 scheduleIndex) external view returns (uint256);
+function getScheduleId(address user, address token, uint256 scheduleIndex) external view returns (bytes32);
+
+function getInterestAccrued(address user, address token, uint256 lendingProtocolIndex) external view returns (uint256);
+
+function getMinPurchasePeriod() external view returns (uint256);
+function getMaxSchedulesPerToken() external view returns (uint256);
+function getDefaultMinPurchaseAmount() external view returns (uint256);
+function getTokenMinPurchaseAmount(address token) external view returns (uint256 minPurchaseAmount, bool customMinAmountSet);
 ```
 
-Updates an existing schedule's parameters.
-
----
-
-```solidity
-function deleteDcaSchedule(
-    address token,
-    uint256 scheduleIndex,
-    bytes32 scheduleId
-) external
-```
-
-Deletes a schedule and refunds remaining stablecoins.
-
-#### Deposits & Withdrawals
-
-```solidity
-function depositToken(
-    address token,
-    uint256 scheduleIndex,
-    bytes32 scheduleId,
-    uint256 depositAmount
-) external
-```
-
-Adds funds to an existing schedule.
-
----
-
-```solidity
-function withdrawToken(
-    address token,
-    uint256 scheduleIndex,
-    bytes32 scheduleId,
-    uint256 withdrawalAmount
-) external
-```
-
-Withdraws stablecoins from a schedule.
-
----
-
-```solidity
-function withdrawRbtcFromTokenHandler(
-    address token,
-    uint256 lendingProtocolIndex
-) external
-```
-
-Withdraws accumulated rBTC from a specific handler.
-
----
-
-```solidity
-function withdrawAllAccumulatedRbtc(
-    address[] calldata tokens,
-    uint256[] calldata lendingProtocolIndexes
-) external
-```
-
-Withdraws rBTC from multiple handlers in one transaction.
-
-#### View Functions
-
-```solidity
-function getMyDcaSchedules(address token) external view returns (DcaDetails[] memory)
-function getDcaSchedules(address user, address token) external view returns (DcaDetails[] memory)
-function getScheduleTokenBalance(address user, address token, uint256 index) external view returns (uint256)
-function getAccumulatedRbtcBalance(address user, address token, uint256 lendingProtocolIndex) external view returns (uint256)
-```
-
-### DcaDetails Structure
+### DcaDetails
 
 ```solidity
 struct DcaDetails {
-    uint256 tokenBalance;          // Remaining stablecoins
-    uint256 purchaseAmount;        // Amount per purchase
-    uint256 purchasePeriod;        // Seconds between purchases
-    uint256 lastPurchaseTimestamp; // Unix timestamp of last purchase
-    bytes32 scheduleId;            // Unique identifier
-    uint256 lendingProtocolIndex;  // Lending protocol ID
+    uint256 tokenBalance;
+    uint256 purchaseAmount;
+    uint256 purchasePeriod;
+    uint256 lastPurchaseTimestamp;
+    bytes32 scheduleId;
+    uint256 lendingProtocolIndex;
 }
 ```
 
-### Events
-
-```solidity
-event DcaScheduleCreated(
-    address indexed user,
-    address indexed token,
-    bytes32 indexed scheduleId,
-    uint256 depositAmount,
-    uint256 purchaseAmount,
-    uint256 purchasePeriod,
-    uint256 lendingProtocolIndex
-);
-
-event DcaScheduleUpdated(
-    address indexed user,
-    address indexed token,
-    bytes32 indexed scheduleId,
-    uint256 updatedTokenBalance,
-    uint256 updatedPurchaseAmount,
-    uint256 updatedPurchasePeriod
-);
-
-event DcaScheduleDeleted(
-    address user,
-    address token,
-    bytes32 scheduleId,
-    uint256 refundedAmount
-);
-```
-
----
-
 ## OperationsAdmin
 
-Manages protocol configuration and access control.
+Registry and role-management contract.
 
-### Role Management
-
-```solidity
-function grantSwapperRole(address swapper) external onlyAdmin
-function revokeSwapperRole(address swapper) external onlyAdmin
-function grantAdminRole(address admin) external onlyOwner
-function revokeAdminRole(address admin) external onlyOwner
-```
-
-### Handler Registry
+### Relevant functions
 
 ```solidity
-function assignOrUpdateTokenHandler(
-    address token,
-    uint256 lendingProtocolIndex,
-    address handler
-) external onlyAdmin
+function assignOrUpdateTokenHandler(address token, uint256 lendingProtocolIndex, address handler) external;
+function addOrUpdateLendingProtocol(string calldata lowerCaseName, uint256 index) external;
+function setSwapperRole(address swapper) external;
+function revokeSwapperRole(address swapper) external;
+function setAdminRole(address admin) external;
+function revokeAdminRole(address admin) external;
+
+function getTokenHandler(address token, uint256 lendingProtocolIndex) external view returns (address);
+function getLendingProtocolIndex(string calldata lowerCaseName) external view returns (uint256);
+function getLendingProtocolName(uint256 index) external view returns (string memory);
 ```
 
-Maps a token + lending protocol combination to its handler contract.
+## Handler Families
 
-### Protocol Registry
+### DOC + MoC handlers
 
-```solidity
-function addOrUpdateLendingProtocol(
-    string calldata lowerCaseName,
-    uint256 index
-) external onlyAdmin
-```
+- `TropykusDocHandlerMoc`
+- `SovrynDocHandlerMoc`
 
-Registers lending protocols:
-- Index 0: No lending (direct hold)
-- Index 1: Tropykus
-- Index 2: Sovryn
+### DEX handlers
 
----
+- `TropykusErc20HandlerDex`
+- `SovrynErc20HandlerDex` (contract exists; deployment support depends on token/protocol configuration)
 
-## TokenHandler (Abstract)
+## Purchase Backends
 
-Base contract for all token handlers.
+### PurchaseMoc
 
-### Core Functions
+- redeems DOC through MoC proxy flow (`redeemDocRequest` + `redeemFreeDoc`)
+- charges fee before crediting user accumulated rBTC
 
-```solidity
-function depositToken(address user, uint256 amount) external onlyDcaManager
-function withdrawToken(address user, uint256 amount) external onlyDcaManager
-```
+### PurchaseUniswap
 
-### Implemented By
+- swaps stablecoin via configured Uniswap V3 path
+- uses MoC oracle `getPriceInfo()` validity flag for minimum output calculation
+- unwraps WRBTC to rBTC on withdrawal
 
-- `TropykusErc20Handler`
-- `SovrynErc20Handler`
+## FeeHandler
 
----
+Handler-level fee settings:
 
-## TokenLending (Abstract)
+- `minFeeRate`
+- `maxFeeRate`
+- `feePurchaseLowerBound`
+- `feePurchaseUpperBound`
+- `feeCollector`
 
-Extends TokenHandler with lending protocol integration.
+`_calculateFee` uses divisor `10_000`.
 
-### Key Functions
+## Validation Rules (Manager)
 
-```solidity
-function mintLendingToken(uint256 amount) internal
-function redeemUnderlying(uint256 amount) internal returns (uint256)
-function getExchangeRate() public view returns (uint256)
-function getUsersLendingTokenBalance(address user) external view returns (uint256)
-function getInterestAccrued(address user, uint256 depositedBalance) external view returns (uint256)
-```
+- `depositAmount > 0`
+- `withdrawalAmount > 0 && withdrawalAmount <= scheduleBalance`
+- `purchaseAmount >= configuredMinimum`
+- `purchaseAmount <= scheduleBalance / 2`
+- `purchasePeriod >= configuredMinimumPeriod`
+- schedule index + schedule ID must match
+- batch arrays must have equal non-zero length
 
----
+## Source
 
-## FeeHandler (Abstract)
-
-Implements the sliding fee scale.
-
-### Fee Calculation
-
-```solidity
-function calculateFee(uint256 purchaseAmount) public view returns (uint256)
-```
-
-Returns the fee amount for a given purchase.
-
-### Fee Parameters
-
-```solidity
-uint256 public s_minFeeRate;           // Basis points (e.g., 30 = 0.3%)
-uint256 public s_maxFeeRate;           // Basis points (e.g., 100 = 1.0%)
-uint256 public s_feePurchaseLowerBound; // Amount below which max fee applies
-uint256 public s_feePurchaseUpperBound; // Amount above which min fee applies
-address public s_feeCollector;          // Recipient of fees
-```
-
-### Fee Formula
-
-For amounts between lower and upper bounds:
-```
-feeRate = maxFee - ((amount - lowerBound) * (maxFee - minFee)) / (upperBound - lowerBound)
-fee = amount * feeRate / 10000
-```
-
----
-
-## PurchaseMoc
-
-Handles swaps via Money on Chain protocol.
-
-### Key Function
-
-```solidity
-function _swapStablecoinForRbtc(uint256 stablecoinAmount) internal returns (uint256 rbtcReceived)
-```
-
-Redeems DOC directly through MoC for rBTC at primary market price.
-
-**Advantages**:
-- No slippage
-- Gas efficient
-- Direct BTC-collateral redemption
-
----
-
-## PurchaseUniswap
-
-Handles swaps via Uniswap V3.
-
-### Key Function
-
-```solidity
-function _swapStablecoinForRbtc(uint256 stablecoinAmount) internal returns (uint256 rbtcReceived)
-```
-
-Swaps stablecoins for WRBTC through Uniswap V3, then unwraps.
-
-**Features**:
-- Oracle price validation for slippage protection
-- Works with any supported stablecoin
-- Market-based pricing
-
----
-
-## Validation Rules
-
-### Schedule Creation
-
-| Rule | Validation |
-|------|------------|
-| Deposit | Must be greater than 0 |
-| Purchase Amount | Must be at least minimum |
-| Purchase Amount | Must be at most 50% of deposit |
-| Purchase Period | Must be at least minimum period |
-| Schedule Count | Cannot exceed per-token limit |
-
-### Purchase Execution
-
-| Rule | Validation |
-|------|------------|
-| Period Elapsed | `block.timestamp >= lastPurchase + period` |
-| Sufficient Balance | `tokenBalance >= purchaseAmount` |
-| Valid Oracle Price | Price within acceptable staleness |
-
-## Source Code
-
-All contracts are open source and available on GitHub:
-
-[BitChillRSK/dca-contracts](https://github.com/BitChillRSK/dca-contracts)
-
-## Next Steps
-
-- [View deployed addresses](/docs/contracts/addresses)
-- [Integration guide](/docs/contracts/integration)
+- [dca-contracts repository](https://github.com/BitChillRSK/dca-contracts)

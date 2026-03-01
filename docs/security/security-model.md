@@ -4,288 +4,86 @@ sidebar_position: 2
 
 # Security Model
 
-BitChill implements multiple layers of security to protect user funds and ensure protocol integrity.
+BitChill uses role-based controls, strict schedule validation, and audited contract code to protect protocol operations.
 
-## Design Principles
+## Core Principles
 
-### Non-Custodial
+### Non-custodial User Operations
 
-Users maintain control of their funds at all times:
+Users directly control their own schedule actions from wallet-signed transactions:
 
-- Funds are held in smart contracts, not by any centralized entity
-- Only users can withdraw their own funds
-- No admin can access or move user deposits
+- create/update/delete schedules
+- deposit/withdraw stablecoins
+- withdraw accumulated rBTC
+- withdraw accrued interest
 
-### Pull-Based Withdrawals
+### Pull-based rBTC Withdrawals
 
-BitChill uses a pull pattern for rBTC distribution:
+Handlers accumulate rBTC balances per user, and users withdraw when desired. This avoids forcing automatic transfers during purchase execution.
 
-```
-❌ Push: Contract sends rBTC to user after each purchase
-✅ Pull: User withdraws accumulated rBTC when ready
-```
+### Explicit On-chain Permissions
 
-**Benefits**:
-- No failed transfers to contracts that can't receive rBTC
-- User controls gas timing
-- Simpler purchase execution (no transfer complexity)
-- Accumulated rBTC is always safe in the handler
+Protocol behavior is gated by clearly defined roles and ownership functions.
 
-### Minimal Trust Surface
+## Access Control Model
 
-Users only need to trust:
+### DcaManager
 
-1. BitChill smart contracts (audited, open source)
-2. Underlying protocols (Tropykus, Sovryn, Uniswap, MoC)
-3. Rootstock network consensus
+- `onlySwapper` on purchase execution (`buyRbtc`, `batchBuyRbtc`)
+- owner functions for manager-level configuration (operations admin pointer and purchase constraints)
 
-No trust required in:
-- BitChill team (can't access funds)
-- Centralized servers (only for convenience, not custody)
-- Any single individual
+### OperationsAdmin
 
-## Access Control
+- `ADMIN_ROLE`: handler mapping, lending protocol registry, swapper role management
+- owner: admin role assignment/revocation
 
-### Role Hierarchy
+### Handlers
 
-```mermaid
-flowchart TD
-    Owner[Contract Owner]
-    Admin[ADMIN_ROLE]
-    Swapper[SWAPPER_ROLE]
-    Users[Users]
-    
-    Owner -->|grants| Admin
-    Admin -->|grants| Swapper
-    Users -->|own schedules| Users
-```
+- `onlyDcaManager` on user-balance-affecting token operations
+- owner-managed handler configuration (fees, swap path/oracle settings where applicable)
 
-### Owner Capabilities
+## Key Contract Defenses
 
-The contract owner can:
-- Set the OperationsAdmin contract
-- Modify protocol parameters (min purchase, max schedules)
-- Grant ADMIN_ROLE
-- Rescue stuck funds (edge cases only)
+### Schedule Index + ID verification
 
-The owner **cannot**:
-- Access user deposits
-- Modify user schedules
-- Withdraw user rBTC
-- Change fees retroactively
+State-changing schedule calls validate both index and `scheduleId`, reducing index mismatch risk when arrays reorder after deletions.
 
-### Admin Capabilities
+### Reentrancy protection on critical manager flows
 
-ADMIN_ROLE holders can:
-- Grant/revoke SWAPPER_ROLE
-- Add/update token handlers
-- Register new lending protocols
+DcaManager applies `nonReentrant` on sensitive external workflows (deposits, withdrawals, purchase execution, aggregate withdrawals).
 
-Admins **cannot**:
-- Access user funds
-- Execute purchases
-- Modify user data
+### Input constraints
 
-### Swapper Capabilities
+- `depositAmount > 0`
+- `withdrawalAmount > 0 && withdrawalAmount <= scheduleBalance`
+- `purchaseAmount >= configuredMinimum`
+- `purchaseAmount <= scheduleBalance / 2`
+- `purchasePeriod >= configuredMinimumPeriod`
 
-SWAPPER_ROLE is granted to an automated wallet that:
-- Executes `batchBuyRbtc()` when periods elapse
-- Cannot modify schedules or parameters
-- Cannot withdraw any funds
+### Safe ERC20 operations
 
-The swapper is a single-purpose automation account.
+Handlers use OpenZeppelin `SafeERC20` for transfers and approvals.
 
-### User Capabilities
+## External Dependencies
 
-Users can only interact with their own schedules:
-- Create/update/delete their schedules
-- Deposit/withdraw their stablecoins
-- Withdraw their accumulated rBTC
+BitChill depends on external protocols for lending/swapping routes used by active handlers:
 
-## Smart Contract Security
+- Tropykus
+- Sovryn
+- Money on Chain
+- Uniswap V3
 
-### Reentrancy Protection
+Operational outcomes also depend on Rootstock network conditions and dependency health.
 
-All functions with external calls use OpenZeppelin's `ReentrancyGuard`:
+## Oracle/Slippage Handling (DEX Handlers)
 
-```solidity
-function withdrawRbtcFromTokenHandler(...) external nonReentrant {
-    // External calls protected
-}
-```
+`PurchaseUniswap` computes `amountOutMinimum` using MoC oracle `getPriceInfo()` validity checks plus configurable minimum output percentages.
 
-### Schedule ID Validation
+## Contract Upgradability
 
-Each schedule has a unique ID preventing index manipulation:
+Core contracts in this repository are not proxy-upgradeable. New behavior is introduced by deploying and registering new contract instances.
 
-```solidity
-bytes32 scheduleId = keccak256(abi.encodePacked(
-    msg.sender,
-    token,
-    userNonce++
-));
-```
+## Security References
 
-Operations require both index AND matching ID, preventing:
-- Index swap attacks
-- Cross-user schedule access
-- Replay attacks
-
-### Input Validation
-
-All inputs are validated:
-
-| Parameter | Validation |
-|-----------|------------|
-| Purchase amount | At least minimum, at most 50% of balance |
-| Purchase period | At least minimum period |
-| Schedule count | At most max per token |
-| Deposit amount | Greater than 0 |
-
-### Safe Token Transfers
-
-All ERC20 operations use OpenZeppelin's SafeERC20:
-
-```solidity
-using SafeERC20 for IERC20;
-token.safeTransferFrom(user, address(this), amount);
-```
-
-This handles tokens that don't return booleans correctly.
-
-### Checks-Effects-Interactions
-
-State changes occur before external calls:
-
-```solidity
-// 1. Check
-require(balance >= amount, "Insufficient");
-
-// 2. Effect (state change)
-balances[user] -= amount;
-
-// 3. Interaction (external call)
-token.safeTransfer(user, amount);
-```
-
-## Oracle Security
-
-### Uniswap V3 Integration
-
-When swapping via Uniswap V3:
-
-1. **Price validation**: Current price checked against MoC oracle
-2. **Staleness check**: Oracle data must be fresh
-3. **Slippage protection**: Maximum acceptable slippage enforced
-
-```solidity
-function _validatePrice(uint256 oraclePrice, uint256 spotPrice) internal view {
-    uint256 deviation = calculateDeviation(oraclePrice, spotPrice);
-    require(deviation <= maxSlippage, "Price deviation too high");
-}
-```
-
-### Money on Chain Integration
-
-MoC swaps use primary market pricing:
-- No slippage (direct redemption)
-- Price determined by MoC protocol
-- More predictable execution
-
-## External Dependency Risks
-
-### Lending Protocol Risk
-
-User funds are deposited into:
-- **Tropykus**: Compound-fork on Rootstock
-- **Sovryn**: Native RSK lending protocol
-
-Risks include:
-- Smart contract bugs in lending protocols
-- Economic attacks on lending pools
-- Extreme market conditions affecting liquidity
-
-**Mitigations**:
-- Both protocols are established with track records
-- Users choose which protocol to use
-- No single dependency
-
-### DEX Risk
-
-Swaps occur through:
-- **Money on Chain**: Primary market redemption
-- **Uniswap V3**: AMM pools
-
-Risks include:
-- Low liquidity causing slippage
-- Oracle manipulation
-
-**Mitigations**:
-- Oracle price validation
-- Slippage limits enforced
-- MoC offers slippage-free alternative for DOC
-
-## Operational Security
-
-### Swapper Wallet
-
-The automated swapper wallet:
-- Holds minimal rBTC for gas
-- Has only SWAPPER_ROLE (no admin powers)
-- Is monitored for unusual activity
-- Can be rotated if compromised
-
-### Multi-Sig Considerations
-
-Protocol parameters can be protected by multi-sig (governance upgrade path).
-
-## Known Limitations
-
-### Not Protected Against
-
-| Risk | Status |
-|------|--------|
-| Rootstock network failure | Dependent on RSK |
-| Complete lending protocol insolvency | User accepts protocol risk |
-| Extreme gas price spikes | Purchases may delay |
-| Smart contract upgrade bugs | Contracts are immutable |
-
-### Immutable Contracts
-
-Core contracts are **not upgradeable** by design:
-- No proxy patterns
-- No admin upgrade functions
-- Logic cannot be changed post-deployment
-
-This provides security guarantees but means bugs require migration, not patches.
-
-## Incident Response
-
-In case of security incidents:
-
-1. **Pause if possible**: Some operations can be paused
-2. **Assess impact**: Determine affected users/funds
-3. **Communicate**: Transparent disclosure
-4. **Remediate**: Deploy fixes or migration path
-5. **Post-mortem**: Public analysis of what went wrong
-
-## Continuous Security
-
-### Monitoring
-
-- On-chain event monitoring
-- Anomaly detection for unusual patterns
-- Transaction tracking
-
-### Future Audits
-
-As the protocol evolves:
-- New features will be audited
-- Periodic re-audits planned
-- Bug bounty program consideration
-
-## Security Resources
-
-- [Audit Reports](/docs/security/audits)
-- [Source Code](https://github.com/BitChillRSK/dca-contracts)
-- [Verified Contracts](https://rootstock.blockscout.com)
+- [Audit reports](/docs/security/audits)
+- [Source code](https://github.com/BitChillRSK/dca-contracts)

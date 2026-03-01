@@ -4,248 +4,149 @@ sidebar_position: 4
 
 # Integration Guide
 
-Guide for developers building on top of BitChill or integrating with the protocol.
+Use `DcaManager` for schedule lifecycle and handler-specific contracts for per-handler accumulated rBTC reads.
 
-## Overview
+## Core Addresses (Mainnet)
 
-BitChill's contracts are designed to be interacted with through the `DcaManager` contract. All user-facing operations go through this single entry point.
+- DcaManager: `0x4d9cbe0f242EE85F7Fa25C77329749381bA998be`
+- OperationsAdmin: `0x942B18A5f78eD612635b6E5FbC49159B5a955f59`
 
-## Reading Data
+## Read Examples
 
-### Get User Schedules
+### 1. Read user schedules
 
-```javascript
+```ts
 import { ethers } from 'ethers';
 
-const DCA_MANAGER = '0x4d9cbe0f242EE85F7Fa25C77329749381bA998be';
-const DOC_TOKEN = '0xe700691dA7b9851F2F35f8b8182c69c53CcaD9Db';
-
-const abi = [
-  'function getDcaSchedules(address user, address token) view returns (tuple(uint256 tokenBalance, uint256 purchaseAmount, uint256 purchasePeriod, uint256 lastPurchaseTimestamp, bytes32 scheduleId, uint256 lendingProtocolIndex)[])'
-];
-
-const contract = new ethers.Contract(DCA_MANAGER, abi, provider);
-const schedules = await contract.getDcaSchedules(userAddress, DOC_TOKEN);
-```
-
-### Get Accumulated rBTC
-
-```javascript
-const abi = [
-  'function getAccumulatedRbtcBalance(address user, address token, uint256 lendingProtocolIndex) view returns (uint256)'
-];
-
-const contract = new ethers.Contract(DCA_MANAGER, abi, provider);
-const balance = await contract.getAccumulatedRbtcBalance(
-  userAddress,
-  DOC_TOKEN,
-  1 // Tropykus
+const dcaManager = new ethers.Contract(
+  '0x4d9cbe0f242EE85F7Fa25C77329749381bA998be',
+  [
+    'function getDcaSchedules(address user, address token) view returns ((uint256 tokenBalance,uint256 purchaseAmount,uint256 purchasePeriod,uint256 lastPurchaseTimestamp,bytes32 scheduleId,uint256 lendingProtocolIndex)[])'
+  ],
+  provider
 );
+
+const schedules = await dcaManager.getDcaSchedules(userAddress, docTokenAddress);
 ```
 
-### Get Interest Accrued
+### 2. Read accrued interest for token + lending protocol
 
-```javascript
-const abi = [
-  'function getInterestAccrued(address user, address token, uint256 scheduleIndex, uint256 lendingProtocolIndex) view returns (uint256)'
-];
-
-const contract = new ethers.Contract(DCA_MANAGER, abi, provider);
-const interest = await contract.getInterestAccrued(
-  userAddress,
-  DOC_TOKEN,
-  0, // First schedule
-  1  // Tropykus
+```ts
+const dcaManager = new ethers.Contract(
+  DCA_MANAGER,
+  ['function getInterestAccrued(address user, address token, uint256 lendingProtocolIndex) view returns (uint256)'],
+  provider
 );
+
+const interest = await dcaManager.getInterestAccrued(userAddress, docTokenAddress, 1n);
 ```
 
-## Writing Data
+### 3. Read accumulated rBTC in a specific handler
 
-### Create a Schedule
+`DcaManager` does not expose a direct `getAccumulatedRbtcBalance` view. Read from the handler contract:
 
-```javascript
-const abi = [
-  'function createDcaSchedule(address token, uint256 depositAmount, uint256 purchaseAmount, uint256 purchasePeriod, uint256 lendingProtocolIndex)'
-];
-
-const contract = new ethers.Contract(DCA_MANAGER, abi, signer);
-
-// First approve token spending
-const docContract = new ethers.Contract(DOC_TOKEN, ['function approve(address,uint256)'], signer);
-await docContract.approve(DCA_MANAGER, depositAmount);
-
-// Create schedule
-const tx = await contract.createDcaSchedule(
-  DOC_TOKEN,                    // token
-  ethers.parseEther('1000'),    // depositAmount (1000 DOC)
-  ethers.parseEther('100'),     // purchaseAmount (100 DOC per period)
-  604800,                       // purchasePeriod (1 week in seconds)
-  1                             // lendingProtocolIndex (Tropykus)
+```ts
+const handler = new ethers.Contract(
+  tropykusDocHandlerAddress,
+  ['function getAccumulatedRbtcBalance(address user) view returns (uint256)'],
+  provider
 );
-await tx.wait();
+
+const accumulated = await handler.getAccumulatedRbtcBalance(userAddress);
 ```
 
-### Deposit to Schedule
+## Write Examples
 
-```javascript
-const abi = [
-  'function depositToken(address token, uint256 scheduleIndex, bytes32 scheduleId, uint256 depositAmount)'
-];
+### 1. Create schedule
 
-const contract = new ethers.Contract(DCA_MANAGER, abi, signer);
-
-// Approve and deposit
-await docContract.approve(DCA_MANAGER, amount);
-const tx = await contract.depositToken(
-  DOC_TOKEN,
-  0,              // scheduleIndex
-  scheduleId,     // bytes32 from schedule
-  amount
+```ts
+const dcaManager = new ethers.Contract(
+  DCA_MANAGER,
+  ['function createDcaSchedule(address token,uint256 depositAmount,uint256 purchaseAmount,uint256 purchasePeriod,uint256 lendingProtocolIndex)'],
+  signer
 );
+
+const token = new ethers.Contract(docTokenAddress, ['function approve(address,uint256) returns (bool)'], signer);
+await (await token.approve(DCA_MANAGER, depositAmount)).wait();
+
+await (
+  await dcaManager.createDcaSchedule(
+    docTokenAddress,
+    depositAmount,
+    purchaseAmount,
+    604800n, // 1 week preset (frontend choice)
+    1n       // Tropykus
+  )
+).wait();
 ```
 
-### Withdraw rBTC
+### 2. Add funds to existing schedule
 
-```javascript
-const abi = [
-  'function withdrawRbtcFromTokenHandler(address token, uint256 lendingProtocolIndex)'
-];
+```ts
+const dcaManager = new ethers.Contract(
+  DCA_MANAGER,
+  ['function depositToken(address token,uint256 scheduleIndex,bytes32 scheduleId,uint256 depositAmount)'],
+  signer
+);
 
-const contract = new ethers.Contract(DCA_MANAGER, abi, signer);
-const tx = await contract.withdrawRbtcFromTokenHandler(DOC_TOKEN, 1);
-await tx.wait();
+await (await token.approve(DCA_MANAGER, amount)).wait();
+await (await dcaManager.depositToken(docTokenAddress, scheduleIndex, scheduleId, amount)).wait();
 ```
 
-## Event Listening
+### 3. Withdraw rBTC from one handler
 
-### Monitor New Schedules
+```ts
+const dcaManager = new ethers.Contract(
+  DCA_MANAGER,
+  ['function withdrawRbtcFromTokenHandler(address token,uint256 lendingProtocolIndex)'],
+  signer
+);
 
-```javascript
-const abi = [
-  'event DcaManager__DcaScheduleCreated(address indexed user, address indexed token, bytes32 indexed scheduleId, uint256 depositAmount, uint256 purchaseAmount, uint256 purchasePeriod, uint256 lendingProtocolIndex)'
-];
-
-const contract = new ethers.Contract(DCA_MANAGER, abi, provider);
-
-contract.on('DcaManager__DcaScheduleCreated', (user, token, scheduleId, deposit, purchase, period, protocol) => {
-  console.log(`New schedule created by ${user}`);
-});
+await (await dcaManager.withdrawRbtcFromTokenHandler(docTokenAddress, 1n)).wait();
 ```
 
-### Monitor Purchases
+### 4. Withdraw rBTC across multiple handlers
 
-```javascript
-const abi = [
-  'event PurchaseRbtc__RbtcBought(address indexed user, address indexed tokenSpent, uint256 rBtcBought, bytes32 indexed scheduleId, uint256 amountSpent)'
-];
-
-// Listen on TokenHandler contracts
-const handler = new ethers.Contract(TROPYKUS_DOC_HANDLER, abi, provider);
-
-handler.on('PurchaseRbtc__RbtcBought', (user, token, rbtc, scheduleId, spent) => {
-  console.log(`Purchase: ${ethers.formatEther(spent)} DOC → ${ethers.formatEther(rbtc)} rBTC`);
-});
+```ts
+await (
+  await dcaManager.withdrawAllAccumulatedRbtc(
+    [docTokenAddress, usdrifTokenAddress],
+    [1n, 2n]
+  )
+).wait();
 ```
 
-## Using with wagmi/viem
+## Events to Index
 
-### React Hook Example
+From `DcaManager`:
 
-```typescript
-import { useReadContract, useWriteContract } from 'wagmi';
+- `DcaManager__DcaScheduleCreated`
+- `DcaManager__DcaScheduleUpdated`
+- `DcaManager__DcaScheduleDeleted`
+- `DcaManager__TokenBalanceUpdated`
+- `DcaManager__LastPurchaseTimestampUpdated`
 
-const DCA_MANAGER_ABI = [...]; // ABI array
+From handlers:
 
-function useSchedules(userAddress: string, token: string) {
-  return useReadContract({
-    address: '0x4d9cbe0f242EE85F7Fa25C77329749381bA998be',
-    abi: DCA_MANAGER_ABI,
-    functionName: 'getDcaSchedules',
-    args: [userAddress, token],
-  });
-}
+- `PurchaseRbtc__RbtcBought`
+- `PurchaseRbtc__SuccessfulRbtcBatchPurchase`
+- `PurchaseRbtc__rBtcWithdrawn`
+- lending events from `ITokenLending` when tracking interest/redemptions
 
-function useCreateSchedule() {
-  const { writeContract } = useWriteContract();
-  
-  return (params: CreateScheduleParams) => {
-    writeContract({
-      address: '0x4d9cbe0f242EE85F7Fa25C77329749381bA998be',
-      abi: DCA_MANAGER_ABI,
-      functionName: 'createDcaSchedule',
-      args: [
-        params.token,
-        params.depositAmount,
-        params.purchaseAmount,
-        params.purchasePeriod,
-        params.lendingProtocolIndex,
-      ],
-    });
-  };
-}
-```
+## Common Reverts (DcaManager)
 
-## GraphQL / Indexing
+Examples:
 
-BitChill events can be indexed using:
-- [The Graph](https://thegraph.com/) (when available on Rootstock)
-- Custom indexer listening to contract events
-- Direct RPC event queries
+- `DcaManager__ScheduleIdAndIndexMismatch`
+- `DcaManager__InexistentScheduleIndex`
+- `DcaManager__PurchaseAmountMustBeGreaterThanMinimum`
+- `DcaManager__PurchaseAmountMustBeLowerThanHalfOfBalance`
+- `DcaManager__CannotBuyIfPurchasePeriodHasNotElapsed`
+- `DcaManager__TokenNotAccepted`
 
-### Event Query Example
+## Integration Tips
 
-```javascript
-const filter = contract.filters.DcaManager__DcaScheduleCreated(userAddress);
-const events = await contract.queryFilter(filter, fromBlock, toBlock);
-```
-
-## Error Handling
-
-BitChill contracts use custom errors. Common ones:
-
-```solidity
-error DcaManager__ScheduleDoesNotExist();
-error DcaManager__InvalidScheduleId();
-error DcaManager__PurchaseAmountTooLow();
-error DcaManager__PurchaseAmountExceedsLimit();
-error DcaManager__InsufficientBalance();
-error DcaManager__MaxSchedulesReached();
-```
-
-Handle in JavaScript:
-
-```javascript
-try {
-  await contract.createDcaSchedule(...);
-} catch (error) {
-  if (error.data) {
-    const decoded = contract.interface.parseError(error.data);
-    console.error(`Contract error: ${decoded.name}`);
-  }
-}
-```
-
-## Gas Estimates
-
-| Operation | Approximate Gas |
-|-----------|-----------------|
-| Create Schedule | ~300,000 |
-| Deposit | ~150,000 |
-| Withdraw Tokens | ~200,000 |
-| Withdraw rBTC | ~100,000 |
-| Delete Schedule | ~250,000 |
-
-## Security Considerations
-
-When integrating:
-
-1. **Always validate scheduleId**: Use the ID returned from events/reads, don't assume indexes
-2. **Check balances**: Verify sufficient balance before operations
-3. **Handle reverts**: Contract will revert on invalid operations
-4. **Approve exact amounts**: Only approve what's needed for each operation
-
-## Support
-
-For integration support:
-- GitHub Issues: [BitChillRSK/dca-contracts](https://github.com/BitChillRSK/dca-contracts/issues)
-- Twitter: [@BitChillApp](https://x.com/BitChillApp)
+1. Persist `scheduleId` from reads/events; do not rely only on index.
+2. Treat handler as the source of truth for accumulated rBTC balance reads.
+3. Keep token/lending-protocol matrices explicit in your backend to avoid wrong handler assumptions.
+4. Decode custom errors in client/backend logs for actionable diagnostics.

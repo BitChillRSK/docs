@@ -4,126 +4,61 @@ sidebar_position: 2
 
 # Supported Tokens & Chains
 
-BitChill operates on Rootstock and supports specific stablecoins and lending protocols.
+## Chain
 
-## Chain: Rootstock (RSK)
+BitChill runs on **Rootstock Mainnet** (`chainId = 30`).
 
-[Rootstock](https://rootstock.io/) is a Bitcoin sidechain that enables smart contracts while being secured by Bitcoin's hashpower through merge-mining. Key characteristics:
+- Native gas token: `rBTC`
+- RPC: `https://public-node.rsk.co`
+- Explorer: [rootstock.blockscout.com](https://rootstock.blockscout.com)
 
-- **Native Token**: rBTC (pegged 1:1 to BTC)
-- **EVM Compatible**: Supports Solidity smart contracts
-- **Bitcoin Security**: Secured by ~60% of Bitcoin's hashpower
-- **Low Fees**: Transaction costs significantly lower than Ethereum
+## Stablecoins
 
-### Network Details
+### DOC
 
-| Property | Value |
-|----------|-------|
-| Chain ID | 30 |
-| Currency | rBTC |
-| Block Time | ~30 seconds |
-| RPC URL | `https://public-node.rsk.co` |
-| Explorer | [explorer.rsk.co](https://explorer.rsk.co) |
-
-## Supported Stablecoins
-
-BitChill accepts two Rootstock-native stablecoins for DCA deposits:
-
-### DOC (Dollar on Chain)
-
-DOC is the stablecoin of the [Money on Chain](https://moneyonchain.com/) protocol, backed by Bitcoin collateral.
-
-| Property | Value |
-|----------|-------|
-| Contract | `0xe700691dA7b9851F2F35f8b8182c69c53CcaD9Db` |
-| Decimals | 18 |
-| Peg | 1 USD |
-| Collateral | Bitcoin (via MoC protocol) |
+- Address: `0xe700691dA7b9851F2F35f8b8182c69c53CcaD9Db`
+- Decimals: 18
 
 ### USDRIF
 
-USDRIF is a USD-pegged stablecoin from the [RIF ecosystem](https://www.rifos.org/).
+- Address: `0x3A15461d8aE0F0Fb5Fa2629e9DA7D66A794a6e37`
+- Decimals: 18
 
-| Property | Value |
-|----------|-------|
-| Contract | `0x3A15461d8aE0F0Fb5Fa2629e9DA7D66A794a6e37` |
-| Decimals | 18 |
-| Peg | 1 USD |
+## Active Handler Matrix (Current Mainnet Deployment)
 
-## Lending Protocols
+| Stablecoin | Lending Protocol | Swap Method | Status |
+|------------|------------------|-------------|--------|
+| DOC | Tropykus | Money on Chain | Active |
+| DOC | Sovryn | Money on Chain | Active |
+| USDRIF | Tropykus | Uniswap V3 | Active |
 
-Your deposited stablecoins earn yield through integration with these lending protocols:
+## Protocol Capability Notes
+
+- Architecture supports additional handler combinations.
+- In current deployment scripts/config, **USDRIF + Sovryn** is not enabled.
+
+## Lending Integrations
 
 ### Tropykus
 
-[Tropykus](https://tropykus.com/) is a Compound-fork lending protocol on Rootstock, focused on the Latin American market.
-
-| Stablecoin | Lending Token | Description |
-|------------|---------------|-------------|
-| DOC | kDOC | `0x544Eb90e766B405134b3B3F62b6b4C23Fcd5fDa2` |
-| USDRIF | kUSDRIF | `0xDdf3CE45fcf080DF61ee61dac5Ddefef7ED4F46C` |
-
-When you deposit into a Tropykus-enabled schedule:
-- Your stablecoins are converted to kTokens
-- kTokens appreciate in value as interest accrues
-- Interest is automatically included when swapping to rBTC
+- DOC lending token: `kDOC` (`0x544Eb90e766B405134b3B3F62b6b4C23Fcd5fDa2`)
+- USDRIF lending token: `kUSDRIF` (`0xDdf3CE45fcf080DF61ee61dac5Ddefef7ED4F46C`)
 
 ### Sovryn
 
-[Sovryn](https://sovryn.com/) is a DeFi platform on Rootstock offering lending, trading, and more.
+- DOC lending token: `iSUSD` (`0xd8D25f03EBbA94E15Df2eD4d6D38276B595593c1`)
 
-| Stablecoin | Lending Token | Description |
-|------------|---------------|-------------|
-| DOC | iSUSD | `0xd8D25f03EBbA94E15Df2eD4d6D38276B595593c1` |
+## Swap Backends
 
-When you deposit into a Sovryn-enabled schedule:
-- Your DOC is deposited into the Sovryn lending pool
-- You earn interest from borrowers
-- Interest accrues continuously
+### Money on Chain (DOC handlers)
 
-## Swap Methods
+DOC handlers using MoC redeem DOC for rBTC through MoC proxy flow.
 
-BitChill uses different swap methods depending on the stablecoin:
+### Uniswap V3 (DEX handlers)
 
-### Money on Chain (Primary for DOC)
-
-For DOC, BitChill can redeem directly through the Money on Chain protocol:
-- No slippage (primary market pricing)
-- Gas efficient
-- Available only for DOC
-
-### Uniswap V3
-
-For all stablecoins, BitChill can swap through Uniswap V3 pools on Rootstock:
-- Market-based pricing
-- Slippage protection via oracle price validation
-- Available for DOC and USDRIF
-
-## Getting Tokens
-
-To use BitChill, you'll need:
-
-1. **rBTC** for gas fees
-2. **DOC or USDRIF** for DCA deposits
-
-### Getting rBTC
-
-- Bridge BTC from Bitcoin mainnet via [Powpeg](https://app.rsk.co/powpeg/)
-- Bridge from other chains via [RSK Token Bridge](https://tokenbridge.rsk.co/)
-
-### Getting DOC
-
-- Mint via [Money on Chain](https://moneyonchain.com/)
-- Swap on [Sovryn](https://sovryn.com/) or other RSK DEXes
-
-### Getting USDRIF
-
-- Available on [RIF on Chain](https://rif.moneyonchain.com/)
-- Swap on RSK DEXes
+DEX handlers swap stablecoin to WRBTC via configured path + fee tiers, with oracle-based `amountOutMinimum` calculation.
 
 ## Next Steps
 
-Now that you know what assets are supported:
-
-- [Connect your wallet](/docs/user-guide/connect-wallet)
-- [Create your first DCA schedule](/docs/user-guide/create-schedule)
+- [Create a schedule](/docs/user-guide/create-schedule)
+- [See deployed contract addresses](/docs/contracts/addresses)

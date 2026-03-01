@@ -4,128 +4,54 @@ sidebar_position: 6
 
 # Fees
 
-BitChill charges a small fee on each DCA purchase to sustain protocol operations.
+BitChill charges protocol fees during purchase execution in handler contracts.
 
-## Fee Structure
+## Where Fees Are Applied
 
-BitChill uses a **sliding fee scale** based on purchase amount—larger purchases pay lower percentage fees.
+For each purchase:
 
-### Fee Calculation
+1. Stablecoin amount is redeemed for the purchase
+2. Fee is computed by handler fee settings
+3. Fee is transferred to configured fee collector
+4. Net amount is swapped to rBTC
 
-```
-Fee % = interpolate(minFee, maxFee, purchaseAmount, lowerBound, upperBound)
-```
+## Fee Model in Contracts
 
-| Parameter | Description |
-|-----------|-------------|
-| **Min Fee Rate** | Lowest fee % (for large purchases) |
-| **Max Fee Rate** | Highest fee % (for small purchases) |
-| **Lower Bound** | Purchase amount below which max fee applies |
-| **Upper Bound** | Purchase amount above which min fee applies |
+`FeeHandler` stores:
 
-### Example Fee Schedule
+- `minFeeRate`
+- `maxFeeRate`
+- `feePurchaseLowerBound`
+- `feePurchaseUpperBound`
 
-| Purchase Amount | Fee Rate | Fee Paid |
-|-----------------|----------|----------|
-| 10 DOC | 1.0% | 0.10 DOC |
-| 50 DOC | 0.75% | 0.375 DOC |
-| 100 DOC | 0.5% | 0.50 DOC |
-| 500 DOC | 0.3% | 1.50 DOC |
+Computation:
 
-:::note
-Actual fee parameters are set by protocol governance. The values above are illustrative.
-:::
+- if `minFeeRate == maxFeeRate`, fee is flat
+- if `amount <= lowerBound`, use max fee rate
+- if `amount >= upperBound`, use min fee rate
+- else interpolate linearly between max and min
 
-## When Fees Are Charged
+All rates are divided by `10_000`.
 
-Fees are deducted **at the time of each purchase**:
+## Current Deployment Defaults (from deployment constants)
 
-1. Purchase is triggered (period elapsed)
-2. Stablecoins are redeemed from lending protocol
-3. **Fee is calculated and deducted**
-4. Remaining amount is swapped for rBTC
-5. rBTC is credited to your schedule
+- `minFeeRate = 100`
+- `maxFeeRate = 100` (production default, flat 1%)
+- lower bound: `1000` tokens
+- upper bound: `100000` tokens
 
-**Example**:
-```
-Purchase amount: 100 DOC
-Fee rate: 0.5%
-Fee: 0.5 DOC
-Net swap: 99.5 DOC → rBTC
-```
+Because min=max in production defaults, effective fee is flat unless owner updates handler fee params.
 
-## Fee Breakdown
+## Gas Responsibility
 
-| Fee Type | Percentage | Recipient |
-|----------|------------|-----------|
-| Protocol Fee | Variable | Fee Collector |
-| Gas Costs | None | Paid by swapper |
+- Automated periodic purchases are executed by swapper infrastructure.
+- Users still pay gas for their own direct transactions (create/update/withdraw calls).
 
-- **Protocol Fee**: The sliding fee described above
-- **Gas Costs**: You don't pay gas for automated purchases; the swapper wallet covers this
+## Transparency
 
-## Fee Destination
-
-Collected fees go to the **Fee Collector** address, a protocol-controlled wallet used for:
-
-- Protocol development
-- Infrastructure costs (swapper gas, API hosting)
-- Future rewards/incentives
-
-## Comparing Costs
-
-### BitChill vs. CEX DCA
-
-| Cost | BitChill | Typical CEX |
-|------|----------|-------------|
-| Purchase Fee | 0.3-1.0% | 0.5-1.5% |
-| Withdrawal Fee | Gas only (~$0.01) | Fixed fee ($5-20) |
-| Custody | Non-custodial | Custodial |
-
-### BitChill vs. Manual DCA
-
-| Cost | BitChill | Manual Swaps |
-|------|----------|--------------|
-| Purchase Fee | 0.3-1.0% | DEX fee (0.3%) |
-| Gas per Swap | Covered by protocol | ~$0.05-0.10 |
-| Time Cost | Automated | Manual effort |
-| Yield | Earning | Usually idle |
-
-## Minimizing Fees
-
-To reduce your effective fee rate:
-
-1. **Larger Purchases**: Higher amounts get lower fee %
-2. **Longer Periods**: Fewer purchases = fewer fees
-3. **Yield Offset**: Interest earned helps offset fees
-
-**Example Optimization**:
-```
-Strategy A: 25 DOC/week × 4 = 100 DOC, ~4% total fees
-Strategy B: 100 DOC/month × 1 = 100 DOC, ~0.5% total fees
-```
-
-## No Hidden Fees
-
-BitChill has **no**:
-- ❌ Deposit fees
-- ❌ Withdrawal fees (only gas)
-- ❌ Schedule creation fees (only gas)
-- ❌ Interest withdrawal fees (only gas)
-
-The only fee is the purchase fee on swaps.
-
-## Fee Transparency
-
-All fees are:
-- Defined in smart contracts
-- Verifiable on-chain
-- Applied consistently
-- Visible before transactions
-
-View current fee parameters on the [Contract Addresses](/docs/contracts/addresses) page.
+Fee parameters are on-chain and queryable per handler (`getMinFeeRate`, `getMaxFeeRate`, bounds, collector).
 
 ## Next Steps
 
-- [View contract architecture](/docs/contracts/architecture)
-- [Review security audits](/docs/security/audits)
+- [Core contracts](/docs/contracts/core-contracts)
+- [Addresses](/docs/contracts/addresses)
