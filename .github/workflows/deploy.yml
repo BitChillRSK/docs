@@ -27,8 +27,41 @@ jobs:
       - name: Deploy to server
         run: |
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -euo pipefail
+
             cd /home/sysadmin/bitchill/docs
             git pull origin main
-            docker compose down && docker compose up --build -d
+            docker compose down
+            docker compose up --build -d
+
+            container_name="docs.bitchill.app"
+            timeout_seconds=180
+            interval_seconds=5
+            elapsed=0
+
+            while true; do
+              status="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' "$container_name" 2>/dev/null || echo missing)"
+              echo "[$container_name] health: $status"
+
+              if [ "$status" = "healthy" ]; then
+                break
+              fi
+
+              if [ "$status" = "unhealthy" ] || [ "$status" = "no-healthcheck" ] || [ "$status" = "missing" ]; then
+                echo "Deploy failed: container did not become healthy"
+                docker logs --tail=200 "$container_name" || true
+                exit 1
+              fi
+
+              if [ "$elapsed" -ge "$timeout_seconds" ]; then
+                echo "Deploy failed: timed out waiting for healthy state"
+                docker logs --tail=200 "$container_name" || true
+                exit 1
+              fi
+
+              sleep "$interval_seconds"
+              elapsed=$((elapsed + interval_seconds))
+            done
+
             docker compose ps
           EOF
