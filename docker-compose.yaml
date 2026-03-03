@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     labels:
+      - "bitchill.autoheal=true"
       - "traefik.enable=true"
       - "traefik.http.routers.docs.rule=Host(`docs.bitchill.app`)"
       - "traefik.http.routers.docs.entrypoints=websecure"
