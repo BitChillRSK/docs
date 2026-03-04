@@ -34,7 +34,7 @@ jobs:
             docker compose down
             docker compose up --build -d
 
-            container_name="docs.bitchill.app"
+            container_name="docs-app"
             timeout_seconds=180
             interval_seconds=5
             elapsed=0
