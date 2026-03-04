@@ -1,6 +1,8 @@
+# Service/container name must not match public hostname (docs.bitchill.app), so internal
+# DNS doesn't resolve it to this container; Uptime Kuma and clients then hit Traefik on 443.
 services:
-  docs.bitchill.app:
-    container_name: docs.bitchill.app
+  docs-app:
+    container_name: docs-app
     image: bitchill-docs:latest
     build:
       context: .
