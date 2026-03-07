@@ -62,7 +62,7 @@ The follow-up audit reviewed:
 
 ## Auditor Background
 
-At the time of conducting BitChill's audits **Ivan Fitro** was an independent smart contract security researcher with extensive experience auditing DeFi protocols. He later joined **Pashov Audit Group** in late 2025 and **OpenZeppelin** in March of 2026.
+At the time of conducting BitChill's audits, **Ivan Fitro** was an independent smart contract security researcher with extensive experience auditing DeFi protocols. He later joined [**Pashov Audit Group**](https://pashov.com) in late 2025 and [**OpenZeppelin**](https://openzeppelin.com) in March of 2026.
 
 ## Ongoing Security
 
