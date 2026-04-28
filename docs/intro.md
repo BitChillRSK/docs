@@ -34,7 +34,7 @@ flowchart TB
     end
     
     subgraph Lending [Lending Protocols]
-        Tropykus[Tropykus (legacy)]
+        Tropykus["Tropykus (legacy)"]
         Sovryn[Sovryn]
     end
     
