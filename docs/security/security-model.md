@@ -70,7 +70,8 @@ BitChill depends on external protocols for lending/swapping routes used by activ
 
 - Sovryn
 - Money on Chain
-- Uniswap V3
+- Tropykus (legacy)
+- Uniswap V3 (legacy)
 
 Operational outcomes also depend on Rootstock network conditions and dependency health.
 
