@@ -31,7 +31,7 @@ When creating a schedule in BitChill, you configure:
 - **Deposit Amount**: How much to deposit initially
 - **Purchase Amount**: How much to convert to rBTC each period
 - **Purchase Period**: How often (1, 2, or 4 weeks)
-- **Lending Protocol**: Where your stablecoins earn yield (Tropykus or Sovryn)
+- **Lending Protocol**: Where your stablecoins earn yield (Sovryn active; Tropykus legacy)
 
 **Contract validations:**
 - `purchaseAmount >= configuredTokenMinimum`
@@ -42,8 +42,8 @@ When creating a schedule in BitChill, you configure:
 
 After creating a schedule, your stablecoins are deposited into the selected lending protocol:
 
-- **Tropykus**: Compound-style lending (kDOC, kUSDRIF tokens)
-- **Sovryn**: Lending pool integration (iSUSD)
+- **Sovryn**: Lending pool integration (iSUSD) - active for new schedules
+- **Tropykus**: Compound-style lending (kDOC, kUSDRIF tokens) - legacy/sunset
 
 Your funds earn interest while waiting to be swapped for rBTC.
 
@@ -87,7 +87,7 @@ Let's say you deposit 1000 DOC with a 100 DOC weekly purchase amount:
 | 2 | 800 DOC | 100 DOC | ~0.002 BTC | Price might vary |
 | ... | ... | ... | ... | Continues until balance runs out |
 
-Meanwhile, your remaining DOC balance earns interest in Tropykus!
+Meanwhile, your remaining DOC balance earns interest in the selected lending protocol.
 
 ## Next Steps
 

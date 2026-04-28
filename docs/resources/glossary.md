@@ -38,7 +38,7 @@ A contract that manages funds for a specific token + lending protocol combinatio
 Base contract inherited by handlers. Implements the fee calculation logic (flat or sliding scale) and fee transfers.
 
 ### Token Handler
-A specific handler instance, such as "TropykusDocHandler" or "SovrynDocHandler". Each handler has its own accumulated rBTC tracking.
+A specific handler instance, such as "SovrynDocHandler". Each handler has its own accumulated rBTC tracking.
 
 ## Tokens & Protocols
 
@@ -54,9 +54,6 @@ An algorithmic stablecoin from Money on Chain, overcollateralized by Bitcoin. On
 ### USDRIF
 A stablecoin from the RIF ecosystem on Rootstock. One of the supported deposit tokens.
 
-### kToken
-Tropykus lending tokens (kDOC, kUSDRIF). Represent your deposit in Tropykus and accrue value over time as interest.
-
 ### iSUSD
 Sovryn's lending token used for DOC deposits. Represents your deposit in Sovryn's lending pool.
 
@@ -64,9 +61,6 @@ Sovryn's lending token used for DOC deposits. Represents your deposit in Sovryn'
 
 ### Rootstock (RSK)
 An EVM-compatible Bitcoin sidechain. BitChill is deployed here, benefiting from Bitcoin's security via merge-mining.
-
-### Tropykus
-A Compound-style lending protocol on Rootstock. BitChill integrates with it for DOC and USDRIF yield generation.
 
 ### Sovryn
 A DeFi platform on Rootstock with lending, trading, and margin features. BitChill integrates with its lending pools.
@@ -83,7 +77,7 @@ A DEX protocol. BitChill's USDRIF handlers use Uniswap V3 pools on Rootstock for
 A unique `bytes32` identifier for each schedule. Used alongside the schedule index for validation.
 
 ### Lending Protocol Index
-A numeric identifier mapping to lending protocols: 0 = none, 1 = Tropykus, 2 = Sovryn.
+A numeric identifier mapping to lending protocols used by handlers: 0 = none, 1 = legacy Tropykus, 2 = Sovryn.
 
 ### SWAPPER_ROLE
 The access control role that permits calling purchase functions. Assigned to the BitChill automated swapper infrastructure.

@@ -34,7 +34,7 @@ flowchart TB
     end
     
     subgraph Lending [Lending Protocols]
-        Tropykus[Tropykus]
+        Tropykus[Tropykus (legacy)]
         Sovryn[Sovryn]
     end
     
@@ -53,7 +53,7 @@ flowchart TB
 ```
 
 1. **Deposit**: Deposit DOC or USDRIF stablecoins into a DCA schedule
-2. **Earn**: Your stablecoins are deposited into Tropykus or Sovryn lending protocols, earning yield while waiting
+2. **Earn**: Your stablecoins are deposited into the selected lending protocol (Sovryn active, Tropykus legacy), earning yield while waiting
 3. **Swap**: Based on your chosen period (1, 2, or 4 weeks), a portion of your stablecoins is swapped for rBTC
 4. **Accumulate**: Purchased rBTC is stored per user per handler, ready for withdrawal
 5. **Withdraw**: Claim your accumulated rBTC whenever you want
@@ -64,7 +64,7 @@ flowchart TB
 |---------|-------------|
 | **Flexible Periods** | Choose 1, 2, or 4 week purchase intervals |
 | **Multiple Stablecoins** | Support for DOC and USDRIF |
-| **Yield Earning** | Integration with Tropykus and Sovryn lending |
+| **Yield Earning** | Integration with Sovryn and Tropykus lending (Tropykus sunset as legacy) |
 | **Low Fees** | Configurable fee scale based on purchase amount |
 | **Pull-Based Withdrawals** | Withdraw your rBTC when you're ready |
 

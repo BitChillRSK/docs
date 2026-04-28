@@ -23,10 +23,10 @@ Handler = Token + Lending Protocol
 ```
 
 For example:
-- All your DOC + Tropykus schedules → combined rBTC in one handler
-- All your DOC + Sovryn schedules → combined rBTC in another handler
+- All your DOC + Sovryn schedules → combined rBTC in one handler
+- Legacy handlers (for previously created schedules) track rBTC separately
 
-This means if you have 3 schedules with DOC + Tropykus, the rBTC from all of them accumulates together.
+This means if you have 3 schedules with DOC + Sovryn, the rBTC from all of them accumulates together.
 
 ## Checking Your Balance
 
@@ -46,7 +46,7 @@ Use when you want to withdraw from a specific token + lending protocol combinati
 withdrawRbtcFromTokenHandler(token, lendingProtocolIndex)
 ```
 
-**Example**: Withdraw rBTC from your DOC + Tropykus handler.
+**Example**: Withdraw rBTC from your DOC + Sovryn handler.
 
 ### Option 2: Withdraw from All Handlers
 
@@ -56,7 +56,7 @@ Use to withdraw all accumulated rBTC across multiple handlers at once:
 withdrawAllAccumulatedRbtc(tokens[], lendingProtocolIndexes[])
 ```
 
-**Example**: Withdraw from both DOC + Tropykus and USDRIF + Tropykus in one transaction.
+**Example**: Withdraw from both DOC + Sovryn and a legacy USDRIF handler in one transaction.
 
 The function iterates through each combination and withdraws where your balance is non-zero.
 

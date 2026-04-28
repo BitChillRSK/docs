@@ -36,8 +36,8 @@ See the [active handler matrix](/docs/getting-started/supported-assets#active-ha
 
 | Stablecoin | Available Lending Protocols |
 |------------|----------------------------|
-| DOC | Tropykus, Sovryn |
-| USDRIF | Tropykus |
+| DOC | Sovryn (active), Tropykus (legacy) |
+| USDRIF | Tropykus (legacy) |
 
 ### How do I get DOC or USDRIF?
 
@@ -82,7 +82,7 @@ Purchases simply stop until you add more funds. Your schedule remains active and
 
 ### How do I earn yield?
 
-Your stablecoins are automatically deposited into the lending protocol you selected (Tropykus or Sovryn). You earn interest on your full balance, including funds waiting to be swapped.
+Your stablecoins are automatically deposited into the lending protocol selected by your handler. New schedules use Sovryn; legacy schedules may still point to Tropykus. You earn interest on your full balance, including funds waiting to be swapped.
 
 ### How do I withdraw my interest?
 
@@ -94,7 +94,7 @@ Interest is tracked separately from your principal. Use these functions:
 
 ### What APY can I expect?
 
-Yields vary based on market conditions and lending protocol utilization. Check current rates on [Tropykus](https://app.tropykus.com) or [Sovryn](https://sovryn.app).
+Yields vary based on market conditions and lending protocol utilization. Check current rates on [Sovryn](https://sovryn.app) and (legacy) [Tropykus](https://app.tropykus.com).
 
 ## Fees
 
@@ -121,7 +121,7 @@ BitChill uses a "pull" pattern. Your purchased rBTC accumulates in handler contr
 
 ### Is rBTC tracked per schedule?
 
-**No.** rBTC is tracked per user per handler (token + lending protocol combination). If you have multiple DOC+Tropykus schedules, the rBTC accumulates together.
+**No.** rBTC is tracked per user per handler (token + lending protocol combination). If you have multiple DOC+Sovryn schedules, the rBTC accumulates together. The same applies to legacy DOC+Tropykus schedules.
 
 ### Do I need to delete my schedule to withdraw?
 

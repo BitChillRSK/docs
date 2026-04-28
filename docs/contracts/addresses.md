@@ -17,8 +17,13 @@ sidebar_position: 3
 
 | Handler | Stablecoin | Lending | Swap | Address |
 |---------|------------|---------|------|---------|
-| TropykusDocHandlerMoc | DOC | Tropykus | MoC | `0xb60024d0030d7876f02BB766E18F0664e81B0856` |
 | SovrynDocHandlerMoc | DOC | Sovryn | MoC | `0xA1A752784d4d43778ED23771777B18AE9cb66461` |
+
+### Legacy Handlers (Sunset)
+
+| Handler | Stablecoin | Lending | Swap | Address |
+|---------|------------|---------|------|---------|
+| TropykusDocHandlerMoc | DOC | Tropykus | MoC | `0xb60024d0030d7876f02BB766E18F0664e81B0856` |
 | TropykusErc20HandlerDex | USDRIF | Tropykus | Uniswap V3 | `0xAfcD7A6F5165F09b049ded06EEC12F5A9E3D09A2` |
 
 ### Operational Addresses
@@ -48,7 +53,7 @@ sidebar_position: 3
 |----------|---------|----------|
 | DcaManager | `0xe41768Eb79F7e84cB793f2E50d995eb31AF0883F` | [View](https://rootstock-testnet.blockscout.com/address/0xe41768Eb79F7e84cB793f2E50d995eb31AF0883F) |
 | OperationsAdmin | `0x7d70dDc0F0Bfaf33FcCe6Af99C2BEF6413d2ec6B` | [View](https://rootstock-testnet.blockscout.com/address/0x7d70dDc0F0Bfaf33FcCe6Af99C2BEF6413d2ec6B) |
-| TropykusDocHandlerMoc | `0x513a9D082d291Aa39DBA7a90a8a54A42e0EbF727` | [View](https://rootstock-testnet.blockscout.com/address/0x513a9D082d291Aa39DBA7a90a8a54A42e0EbF727) |
+| TropykusDocHandlerMoc (legacy) | `0x513a9D082d291Aa39DBA7a90a8a54A42e0EbF727` | [View](https://rootstock-testnet.blockscout.com/address/0x513a9D082d291Aa39DBA7a90a8a54A42e0EbF727) |
 | SovrynDocHandlerMoc | `0x2d8E508c239A1f284e5F859d9945E5e369615364` | [View](https://rootstock-testnet.blockscout.com/address/0x2d8E508c239A1f284e5F859d9945E5e369615364) |
 
 ## Lending Protocol Indexes
@@ -56,7 +61,7 @@ sidebar_position: 3
 | Index | Meaning |
 |-------|---------|
 | 0 | no lending / direct handler slot |
-| 1 | tropykus |
+| 1 | tropykus (legacy) |
 | 2 | sovryn |
 
 ## Parameter Discovery

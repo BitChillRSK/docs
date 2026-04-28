@@ -53,17 +53,17 @@ Each combination of stablecoin and lending protocol has a dedicated handler:
 
 | Stablecoin | Lending Protocol | Swap Method | Status |
 |------------|------------------|-------------|--------|
-| DOC | Tropykus | Money on Chain | Active |
+| DOC | Tropykus | Money on Chain | Legacy (sunset) |
 | DOC | Sovryn | Money on Chain | Active |
-| USDRIF | Tropykus | Uniswap V3 | Active |
+| USDRIF | Tropykus | Uniswap V3 | Legacy (sunset) |
 
-**Note**: The architecture supports additional handler combinations. Currently, USDRIF + Sovryn is not deployed.
+**Note**: Tropykus is sunset and kept only for legacy references. New schedules use Sovryn. USDRIF + Sovryn is not deployed.
 
 ## Lending Protocol Integration
 
 Your stablecoins earn yield while waiting to be swapped. BitChill integrates with:
 
-### Tropykus
+### Tropykus (legacy)
 
 A Compound-style lending protocol on Rootstock.
 
@@ -88,9 +88,9 @@ BitChill uses different swap backends depending on the stablecoin:
 
 DOC handlers redeem DOC for rBTC through the Money on Chain protocol. This is a native redemption, not a DEX swap.
 
-### Uniswap V3 (USDRIF)
+### Uniswap V3 (USDRIF, legacy)
 
-USDRIF handlers swap via Uniswap V3 pools on Rootstock. The swap path and fee tiers are configured per handler, with oracle-based slippage protection.
+Legacy USDRIF handlers swap via Uniswap V3 pools on Rootstock. The swap path and fee tiers are configured per handler, with oracle-based slippage protection.
 
 ## How to Get Tokens
 
