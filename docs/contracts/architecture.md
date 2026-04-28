@@ -49,15 +49,15 @@ flowchart TB
 Concrete handlers combine:
 
 - token custody and transfer logic (`TokenHandler`)
-- optional lending integration (`TropykusErc20Handler` / `SovrynErc20Handler`)
+- optional lending integration (`SovrynErc20Handler`; `TropykusErc20Handler` legacy)
 - purchase backend (`PurchaseMoc` or `PurchaseUniswap`)
 - fee calculation (`FeeHandler`)
 
 ## Active Mainnet Handlers
 
-- `TropykusDocHandlerMoc`
 - `SovrynDocHandlerMoc`
-- `TropykusErc20HandlerDex` (USDRIF)
+- `TropykusDocHandlerMoc` (legacy)
+- `TropykusErc20HandlerDex` (USDRIF, legacy)
 
 ## Access Model
 

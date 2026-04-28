@@ -38,7 +38,7 @@ A contract that manages funds for a specific token + lending protocol combinatio
 Base contract inherited by handlers. Implements the fee calculation logic (flat or sliding scale) and fee transfers.
 
 ### Token Handler
-A specific handler instance, such as "TropykusDocHandler" or "SovrynDocHandler". Each handler has its own accumulated rBTC tracking.
+A specific handler instance, such as "SovrynDocHandler". Each handler has its own accumulated rBTC tracking.
 
 ## Tokens & Protocols
 
@@ -46,7 +46,7 @@ A specific handler instance, such as "TropykusDocHandler" or "SovrynDocHandler".
 Rootstock's native token, pegged 1:1 to Bitcoin. This is what you accumulate through BitChill DCA.
 
 ### WRBTC
-Wrapped rBTC, an ERC-20 token. Used internally for DEX swaps before being unwrapped for user withdrawals.
+Wrapped rBTC, an ERC-20 token. Used internally for DEX swaps before being unwrapped for user withdrawals. No longer used as of Tropykus' sunset.
 
 ### DOC (Dollar on Chain)
 An algorithmic stablecoin from Money on Chain, overcollateralized by Bitcoin. One of the supported deposit tokens.
@@ -65,17 +65,17 @@ Sovryn's lending token used for DOC deposits. Represents your deposit in Sovryn'
 ### Rootstock (RSK)
 An EVM-compatible Bitcoin sidechain. BitChill is deployed here, benefiting from Bitcoin's security via merge-mining.
 
-### Tropykus
-A Compound-style lending protocol on Rootstock. BitChill integrates with it for DOC and USDRIF yield generation.
-
 ### Sovryn
 A DeFi platform on Rootstock with lending, trading, and margin features. BitChill integrates with its lending pools.
 
 ### Money on Chain (MoC)
 The protocol behind DOC. BitChill's DOC handlers redeem DOC for rBTC through MoC.
 
+### Tropykus (legacy)
+A Compound-style lending protocol on Rootstock. BitChill integrated with it for DOC and USDRIF yield generation until it sunset in mid 2026.
+
 ### Uniswap V3
-A DEX protocol. BitChill's USDRIF handlers use Uniswap V3 pools on Rootstock for swapping.
+A DEX protocol. BitChill's USDRIF handlers used Uniswap V3 pools on Rootstock for swapping until Tropykus' sunset in mid 2026.
 
 ## Technical Terms
 
@@ -83,7 +83,7 @@ A DEX protocol. BitChill's USDRIF handlers use Uniswap V3 pools on Rootstock for
 A unique `bytes32` identifier for each schedule. Used alongside the schedule index for validation.
 
 ### Lending Protocol Index
-A numeric identifier mapping to lending protocols: 0 = none, 1 = Tropykus, 2 = Sovryn.
+A numeric identifier mapping to lending protocols used by handlers: 0 = none, 1 = Tropykus, 2 = Sovryn.
 
 ### SWAPPER_ROLE
 The access control role that permits calling purchase functions. Assigned to the BitChill automated swapper infrastructure.

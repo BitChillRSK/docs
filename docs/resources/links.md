@@ -62,7 +62,7 @@ Official BitChill resources and related projects.
 
 | Protocol | Website | Docs |
 |----------|---------|------|
-| **Tropykus** | [tropykus.com](https://tropykus.com/) | [Docs](https://docs.tropykus.com/) |
+| **Tropykus (legacy)** | [tropykus.com](https://tropykus.com/) | [Docs](https://docs.tropykus.com/) |
 | **Sovryn** | [sovryn.com](https://sovryn.com/) | [Wiki](https://wiki.sovryn.com/) |
 
 ### Stablecoin Protocols
@@ -158,9 +158,9 @@ Explorer: https://explorer.rsk.co
 ```
 DcaManager:              0x4d9cbe0f242EE85F7Fa25C77329749381bA998be
 OperationsAdmin:         0x942B18A5f78eD612635b6E5FbC49159B5a955f59
-TropykusDocHandler:      0xb60024d0030d7876f02BB766E18F0664e81B0856
+TropykusDocHandler:      0xb60024d0030d7876f02BB766E18F0664e81B0856 (legacy)
 SovrynDocHandler:        0xA1A752784d4d43778ED23771777B18AE9cb66461
-TropykusUsdrifHandler:   0xAfcD7A6F5165F09b049ded06EEC12F5A9E3D09A2
+TropykusUsdrifHandler:   0xAfcD7A6F5165F09b049ded06EEC12F5A9E3D09A2 (legacy)
 ```
 
 ### Tokens

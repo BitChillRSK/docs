@@ -38,7 +38,7 @@ const dcaManager = new ethers.Contract(
   provider
 );
 
-const interest = await dcaManager.getInterestAccrued(userAddress, docTokenAddress, 1n);
+const interest = await dcaManager.getInterestAccrued(userAddress, docTokenAddress, 2n);
 ```
 
 ### 3. Read accumulated rBTC in a specific handler
@@ -47,7 +47,7 @@ const interest = await dcaManager.getInterestAccrued(userAddress, docTokenAddres
 
 ```ts
 const handler = new ethers.Contract(
-  tropykusDocHandlerAddress,
+  sovrynDocHandlerAddress,
   ['function getAccumulatedRbtcBalance(address user) view returns (uint256)'],
   provider
 );
@@ -75,7 +75,7 @@ await (
     depositAmount,
     purchaseAmount,
     604800n, // 1 week preset (frontend choice)
-    1n       // Tropykus
+    2n       // Sovryn
   )
 ).wait();
 ```
@@ -102,7 +102,7 @@ const dcaManager = new ethers.Contract(
   signer
 );
 
-await (await dcaManager.withdrawRbtcFromTokenHandler(docTokenAddress, 1n)).wait();
+await (await dcaManager.withdrawRbtcFromTokenHandler(docTokenAddress, 2n)).wait();
 ```
 
 ### 4. Withdraw rBTC across multiple handlers
@@ -111,7 +111,7 @@ await (await dcaManager.withdrawRbtcFromTokenHandler(docTokenAddress, 1n)).wait(
 await (
   await dcaManager.withdrawAllAccumulatedRbtc(
     [docTokenAddress, usdrifTokenAddress],
-    [1n, 2n]
+    [2n, 1n] // Sovryn DOC + legacy USDRIF handler
   )
 ).wait();
 ```

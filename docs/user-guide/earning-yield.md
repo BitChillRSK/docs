@@ -10,7 +10,7 @@ One of BitChill's key features is that your stablecoins earn yield while waiting
 
 When you deposit stablecoins into a BitChill schedule:
 
-1. Your stablecoins are routed by the selected handler into a lending protocol (Tropykus or Sovryn)
+1. Your stablecoins are routed by the selected handler into a lending protocol (Sovryn active, Tropykus legacy)
 2. The handler receives lending tokens (kDOC, kUSDRIF, or iSUSD) and tracks your share internally
 3. The lending position accrues value over time as borrowers pay interest
 4. When purchases occur, the required stablecoin amount is redeemed from lending
@@ -18,9 +18,9 @@ When you deposit stablecoins into a BitChill schedule:
 
 ```mermaid
 flowchart LR
-    A[Your DOC] --> B[Deposited to Tropykus]
-    B --> C["Handler receives kDOC"]
-    C --> D[kDOC accrues value]
+    A[Your DOC] --> B[Deposited to Sovryn]
+    B --> C["Handler receives iSUSD"]
+    C --> D[iSUSD accrues value]
     D --> E[Withdraw when needed]
 ```
 
@@ -30,10 +30,10 @@ BitChill tracks your yield through the lending token mechanism:
 
 | Protocol | Lending Token | How Interest Works |
 |----------|--------------|-------------------|
-| Tropykus | kDOC, kUSDRIF | Exchange rate increases over time |
+| Tropykus (legacy) | kDOC, kUSDRIF | Exchange rate increases over time |
 | Sovryn | iSUSD | Asset balance grows via interest |
 
-### Tropykus (Compound-style)
+### Tropykus (legacy, sunset)
 
 The handler tracks your position as a kToken balance (`s_kTokenBalances[user]`). The underlying stablecoin value grows as the exchange rate increases:
 
@@ -108,7 +108,7 @@ Each purchase swaps exactly 100 DOC for rBTC. The 50 DOC interest remains untouc
 Yield rates are variable and depend on lending protocol utilization and market conditions.
 
 Check live rates on:
-- **Tropykus**: [tropykus.com](https://tropykus.com/)
+- **Tropykus (legacy)**: [tropykus.com](https://tropykus.com/)
 - **Sovryn**: [sovryn.app](https://sovryn.app/)
 
 ## Risks

@@ -68,10 +68,10 @@ Handlers use OpenZeppelin `SafeERC20` for transfers and approvals.
 
 BitChill depends on external protocols for lending/swapping routes used by active handlers:
 
-- Tropykus
 - Sovryn
 - Money on Chain
-- Uniswap V3
+- Tropykus (legacy)
+- Uniswap V3 (legacy)
 
 Operational outcomes also depend on Rootstock network conditions and dependency health.
 

@@ -80,12 +80,12 @@ function getLendingProtocolName(uint256 index) external view returns (string mem
 
 ### DOC + MoC handlers
 
-- `TropykusDocHandlerMoc`
 - `SovrynDocHandlerMoc`
+- `TropykusDocHandlerMoc` (legacy)
 
 ### DEX handlers
 
-- `TropykusErc20HandlerDex`
+- `TropykusErc20HandlerDex` (legacy)
 - `SovrynErc20HandlerDex` (contract exists; deployment support depends on token/protocol configuration)
 
 ## Purchase Backends
