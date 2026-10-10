@@ -2,123 +2,55 @@
 sidebar_position: 3
 ---
 
-# Managing Your Schedules
+# Manage a schedule
 
-Once you've created a DCA schedule, you can modify it at any time. This guide covers all the ways you can manage your active schedules.
+You manage a schedule with the stablecoin and the decimal schedule id. The contracts are not deployed. These calls are the protocol behavior after deployment.
 
-## Viewing Your Schedules
+## Actions
 
-From the BitChill app dashboard, you can see:
+| Action | Call | What it changes |
+| --- | --- | --- |
+| Add principal | `depositToken` | Increases the schedule balance |
+| Change the purchase amount | `updatePurchaseAmount` | Sets the next gross purchase |
+| Change the cadence | `updatePurchasePeriod` | Sets the next whole-day period |
+| Pause or resume purchases | `setSchedulePaused` | Blocks or allows purchases for this schedule |
+| Withdraw principal | `withdrawToken` | Returns stablecoin principal |
+| Delete | `deleteDcaSchedule` | Returns remaining principal and retires the id |
 
-- All your active schedules
-- Current balance in each schedule
-- Next purchase date
-- Total accumulated rBTC
-- Accrued interest
+`deleteDcaSchedule` also takes the current index of that id in your list for the token. Read the list, then submit the index that contains the id. A delete moves another id into the freed list slot. Use the id, not an old list position.
 
-## What You Can Modify
+## Pause
 
-| Action | Function | Description |
-|--------|----------|-------------|
-| Add funds | `depositToken` | Top up your schedule balance |
-| Withdraw funds | `withdrawToken` | Remove stablecoins from schedule |
-| Change purchase amount | `setPurchaseAmount` | Adjust how much is swapped each period |
-| Change period | `setPurchasePeriod` | Switch between 1/2/4 week intervals |
-| Update multiple | `updateDcaSchedule` | Change several parameters at once |
-| Delete | `deleteDcaSchedule` | Remove the schedule entirely |
+A schedule pause blocks purchases for that schedule. A deposit pause blocks new deposits for one token and one route. That pause is an owner setting on the pair.
 
-## Adding More Funds
+Neither pause blocks a withdrawal, a delete, an rBTC claim, or an edit. The protected purchase window is the exception for some of those calls. Website data never blocks a user exit. You exit by calling the contract from your account.
 
-You can top up your schedule at any time:
+## Protected purchase window
 
-1. Navigate to your schedule
-2. Click "Add Funds" or "Deposit"
-3. Enter the amount to add
-4. Confirm the transaction
+A swapper can open a window of five blocks. From the activation block through the next four blocks, the contract refuses these calls:
 
-Your schedule continues with the new balance, maintaining your existing purchase settings.
+- a purchase-amount edit
+- a cadence edit
+- a schedule pause edit
+- a delete
+- a principal withdrawal
+- a principal-and-interest withdrawal
+- a bulk interest withdrawal
 
-## Withdrawing Stablecoins
+Those calls are available again on the fifth following block. An rBTC claim stays available during the window. A new deposit stays available during the window, unless a deposit pause applies to that token and route.
 
-Need to reduce your position? Withdraw some of your stablecoin balance:
+## Delete
 
-1. Navigate to your schedule
-2. Click "Withdraw"
-3. Enter the amount to withdraw
-4. Confirm the transaction
+A delete returns remaining principal to you. It does not claim interest. It does not claim accumulated rBTC. Claim rBTC in a separate call. On a lending route, withdraw interest in a separate call if you want that stablecoin.
 
-:::warning Important
-Withdrawing stablecoins does **not** include accrued interest. Use `withdrawTokenAndInterest` if you want both.
-:::
+The deleted-schedule event reports the amount the handler paid. That amount can be lower than the stored principal if the handler pays less than the request.
 
-## Changing Purchase Amount
+## Several schedules
 
-Adjust how much is swapped for rBTC each period:
+You can hold more than one schedule for the same stablecoin, up to the owner cap. Each schedule has its own balance, purchase amount, cadence, anchor, pause flag, and route. rBTC from schedules on the same token and route is stored together in that handler.
 
-**Requirements**:
-- New amount must meet minimum purchase requirements
-- New amount cannot exceed 50% of remaining balance
+## Read next
 
-Changes take effect on the next scheduled purchase.
-
-## Changing Purchase Period
-
-Switch between 1, 2, or 4 week intervals:
-
-:::info Note
-Changing the period does **not** reset your last purchase timestamp. The new period applies to the next eligibility check.
-:::
-
-For example, if you purchased yesterday and switch from 1 week to 2 weeks, your next purchase will be 2 weeks from the original purchase, not 2 weeks from now.
-
-## Deleting a Schedule
-
-When you delete a schedule:
-
-1. ✅ Remaining stablecoin principal is returned to you
-2. ❌ Accrued interest is **not** automatically withdrawn
-3. ❌ Accumulated rBTC is **not** automatically withdrawn
-
-**Before deleting**, consider:
-- Withdrawing your accumulated rBTC first
-- Withdrawing any accrued interest
-
-## Multiple Schedules
-
-You can have multiple schedules for the same token (up to the configured maximum). Each schedule has independent:
-
-- Purchase amount
-- Purchase period
-- Token balance
-- Last purchase timestamp
-- Schedule ID
-
-This allows you to run different strategies simultaneously, such as:
-- A larger weekly purchase + a smaller monthly purchase
-- Different lending protocols for the same token
-
-## Recommended Workflow
-
-When closing out your BitChill positions:
-
-```
-1. Withdraw accumulated rBTC (from handlers)
-     ↓
-2. Withdraw accrued interest (if any)
-     ↓
-3. Delete schedule (returns remaining principal)
-```
-
-## Technical Details
-
-All schedule modifications require both:
-- `scheduleIndex`: Position in your schedules array
-- `scheduleId`: Unique identifier for the schedule
-
-This dual validation prevents issues if schedule order changes.
-
-## Next Steps
-
-- [Withdraw your rBTC](/docs/user-guide/withdraw-rbtc)
-- [Understanding yield and interest](/docs/user-guide/earning-yield)
+- [Claim rBTC](/docs/user-guide/withdraw-rbtc)
+- [Lending and idle balances](/docs/user-guide/earning-yield)
 - [FAQ](/docs/resources/faq)

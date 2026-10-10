@@ -50,16 +50,16 @@ function HomepageFeatures() {
       <div className="container">
         <div className="row">
           <Feature
-            title="Automated DCA"
-            description="Set your schedule once and let BitChill handle the rest. Periodic purchases happen automatically, removing the stress of timing the market."
+            title="Scheduled buys"
+            description="You set a stablecoin, a route, and a cadence in whole UTC days. A purchase has no guaranteed minute, and a missed day is not caught up."
           />
           <Feature
-            title="Earn While You Wait"
-            description="Your stablecoins earn yield in lending protocols (Tropykus, Sovryn) while waiting to be swapped for Bitcoin."
+            title="Idle or lending"
+            description="The idle route earns no lending yield. LayerBank can lend DOC, USDRIF, and USDT0. Sovryn can lend DOC. Tropykus is not a route."
           />
           <Feature
-            title="Non-Custodial"
-            description="Maintain full control of your funds at all times. BitChill smart contracts are audited and open source."
+            title="Your exit"
+            description="You withdraw, delete, and claim rBTC from your account. The protocol contracts are not deployed. No manual audit of this version is published."
           />
         </div>
       </div>

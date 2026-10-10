@@ -2,127 +2,140 @@
 sidebar_position: 2
 ---
 
-# Core Contracts
+# Core calls
 
-## DcaManager
+These signatures describe the undeployed protocol. Do not send them to an old deployment. No manager address is published on the address page.
 
-Primary user-entry contract.
-
-### Key write functions
+## DcaManager user calls
 
 ```solidity
-function createDcaSchedule(address token, uint256 depositAmount, uint256 purchaseAmount, uint256 purchasePeriod, uint256 lendingProtocolIndex) external;
-function updateDcaSchedule(address token, uint256 scheduleIndex, bytes32 scheduleId, uint256 depositAmount, uint256 purchaseAmount, uint256 purchasePeriod) external;
-function deleteDcaSchedule(address token, uint256 scheduleIndex, bytes32 scheduleId) external;
+function createDcaSchedule(
+    address token,
+    uint256 depositAmount,
+    uint256 purchaseAmount,
+    uint256 purchasePeriod,
+    uint256 routeIndex
+) external;
 
-function depositToken(address token, uint256 scheduleIndex, bytes32 scheduleId, uint256 depositAmount) external;
-function withdrawToken(address token, uint256 scheduleIndex, bytes32 scheduleId, uint256 withdrawalAmount) external;
-function withdrawTokenAndInterest(address token, uint256 scheduleIndex, bytes32 scheduleId, uint256 withdrawalAmount, uint256 lendingProtocolIndex) external;
-
-function buyRbtc(address buyer, address token, uint256 scheduleIndex, bytes32 scheduleId) external;
-function batchBuyRbtc(address[] calldata buyers, address token, uint256[] calldata scheduleIndexes, bytes32[] calldata scheduleIds, uint256[] calldata purchaseAmounts, uint256 lendingProtocolIndex) external;
-
-function withdrawRbtcFromTokenHandler(address token, uint256 lendingProtocolIndex) external;
-function withdrawAllAccumulatedRbtc(address[] calldata tokens, uint256[] calldata lendingProtocolIndexes) external;
-function withdrawAllAccumulatedInterest(address[] calldata tokens, uint256[] calldata lendingProtocolIndexes) external;
+function depositToken(address token, uint64 scheduleId, uint256 depositAmount) external;
+function updatePurchaseAmount(address token, uint64 scheduleId, uint256 newPurchaseAmount) external;
+function updatePurchasePeriod(address token, uint64 scheduleId, uint256 newPurchasePeriod) external;
+function setSchedulePaused(address token, uint64 scheduleId, bool paused) external;
+function deleteDcaSchedule(address token, uint64 scheduleId, uint256 scheduleIdIndex) external;
+function withdrawToken(address token, uint64 scheduleId, uint256 withdrawalAmount) external;
+function withdrawTokenAndInterest(address token, uint64 scheduleId, uint256 withdrawalAmount) external;
+function topUpFromInterest(address token, uint64 scheduleId, uint256 amount) external;
+function withdrawAllAccumulatedInterest(address[] calldata tokens, uint256[] calldata routeIndexes) external;
+function withdrawAccumulatedRbtc(address token, uint256 routeIndex) external;
+function withdrawAllAccumulatedRbtc(address[] calldata tokens, uint256[] calldata routeIndexes) external;
 ```
 
-### Key read functions
+`withdrawTokenAndInterest` and `topUpFromInterest` are for a lending route. An idle schedule reverts those calls. `topUpFromInterest` adds lending interest to one schedule's principal. It does not move tokens out. A delete returns principal and does not claim interest or rBTC. An accrued-interest figure is not available on this site.
+
+A withdrawal amount of the maximum `uint256` value means the whole principal of that schedule.
+
+## Schedule record
 
 ```solidity
-function getDcaSchedules(address user, address token) external view returns (DcaDetails[] memory);
-function getScheduleTokenBalance(address user, address token, uint256 scheduleIndex) external view returns (uint256);
-function getSchedulePurchaseAmount(address user, address token, uint256 scheduleIndex) external view returns (uint256);
-function getSchedulePurchasePeriod(address user, address token, uint256 scheduleIndex) external view returns (uint256);
-function getScheduleId(address user, address token, uint256 scheduleIndex) external view returns (bytes32);
-
-function getInterestAccrued(address user, address token, uint256 lendingProtocolIndex) external view returns (uint256);
-
-function getMinPurchasePeriod() external view returns (uint256);
-function getMaxSchedulesPerToken() external view returns (uint256);
-function getDefaultMinPurchaseAmount() external view returns (uint256);
-function getTokenMinPurchaseAmount(address token) external view returns (uint256 minPurchaseAmount, bool customMinAmountSet);
-```
-
-### DcaDetails
-
-```solidity
-struct DcaDetails {
-    uint256 tokenBalance;
-    uint256 purchaseAmount;
-    uint256 purchasePeriod;
-    uint256 lastPurchaseTimestamp;
-    bytes32 scheduleId;
-    uint256 lendingProtocolIndex;
+struct DcaSchedule {
+    uint128 tokenBalance;
+    uint48 cadenceAnchor;
+    bool paused;
+    uint32 purchasePeriod;
+    uint32 routeIndex;
+    address user;
+    uint96 purchaseAmount;
 }
 ```
 
-## OperationsAdmin
+`tokenBalance` is principal the schedule can spend or withdraw. `cadenceAnchor` is a UTC midnight, or zero before the first purchase. `purchasePeriod` is a whole number of UTC days, stored in seconds. `scheduleId` is not inside this struct. You pass the decimal id with the stablecoin.
 
-Registry and role-management contract.
-
-### Relevant functions
+## Reads
 
 ```solidity
-function assignOrUpdateTokenHandler(address token, uint256 lendingProtocolIndex, address handler) external;
-function addOrUpdateLendingProtocol(string calldata lowerCaseName, uint256 index) external;
-function setSwapperRole(address swapper) external;
-function revokeSwapperRole(address swapper) external;
-function setAdminRole(address admin) external;
-function revokeAdminRole(address admin) external;
-
-function getTokenHandler(address token, uint256 lendingProtocolIndex) external view returns (address);
-function getLendingProtocolIndex(string calldata lowerCaseName) external view returns (uint256);
-function getLendingProtocolName(uint256 index) external view returns (string memory);
+function getDcaSchedule(address token, uint64 scheduleId) external view returns (DcaSchedule memory);
+function getDcaSchedules(address user, address token)
+    external view returns (uint64[] memory scheduleIds, DcaSchedule[] memory schedules);
+function getAccumulatedRbtcBalance(address user, address token, uint256 routeIndex) external view returns (uint256);
+function getMinPurchasePeriod() external view returns (uint256);
+function getMaxSchedulesPerToken() external view returns (uint256);
+function getTokenMinPurchaseAmount(address token) external view returns (uint256);
 ```
 
-## Handler Families
+`getDcaSchedules` returns ids and records in the same order. A delete can move the last id into a freed slot. Address a schedule by the id and the token.
 
-### DOC + MoC handlers
+An accrued-interest figure is not available from the offchain system. These pages do not publish one, and they do not publish a live APY.
 
-- `SovrynDocHandlerMoc`
-- `TropykusDocHandlerMoc` (legacy)
+## Swapper calls
 
-### DEX handlers
+```solidity
+struct Batch {
+    uint64[] scheduleIds;
+    address token;
+    uint256 routeIndex;
+    uint256 minRbtcOut;
+}
 
-- `TropykusErc20HandlerDex` (legacy)
-- `SovrynErc20HandlerDex` (contract exists; deployment support depends on token/protocol configuration)
+function batchBuyRbtc(Batch calldata batch) external;
+function batchBuyRbtcAcrossHandlers(Batch[] calldata batches) external;
+function activateProtectedPurchaseWindow() external;
+```
 
-## Purchase Backends
+Only an allowlisted swapper can call these. A paused schedule in a batch reverts that batch. In a multi-handler call, one failed batch reverts every handler in the call.
 
-### PurchaseMoc
+The protected window lasts five blocks. During it, the contract refuses amount edits, period edits, pause edits, deletes, principal withdrawals, and interest withdrawals. An rBTC claim stays open.
 
-- redeems DOC through MoC proxy flow (`redeemDocRequest` + `redeemFreeDoc`)
-- charges fee before crediting user accumulated rBTC
+## Owner settings on the manager
 
-### PurchaseUniswap
+```solidity
+function setMinPurchasePeriod(uint256 minPurchasePeriod) external;
+function setMaxSchedulesPerToken(uint256 maxSchedulesPerToken) external;
+function setTokenMinPurchaseAmount(address token, uint256 minPurchaseAmount) external;
+```
 
-- swaps stablecoin via configured Uniswap V3 path
-- uses MoC oracle `getPriceInfo()` validity flag for minimum output calculation
-- unwraps WRBTC to rBTC on withdrawal
+The minimum period is a whole number of UTC days and is at least one day. Each stablecoin has its own purchase minimum. A zero minimum is rejected.
 
-## FeeHandler
+## OperationsAdmin
 
-Handler-level fee settings:
+```solidity
+function registerRoute(uint256 index, bool lends) external;
+function assignHandler(address token, uint256 routeIndex, address handler) external;
+function setDepositsPaused(address token, uint256 routeIndex, bool paused) external;
+function addSwapper(address swapper) external;
+function revokeSwapper(address swapper) external;
 
-- `minFeeRate`
-- `maxFeeRate`
-- `feePurchaseLowerBound`
-- `feePurchaseUpperBound`
-- `feeCollector`
+function getHandler(address token, uint256 routeIndex) external view returns (address handler);
+function areDepositsPaused(address token, uint256 routeIndex) external view returns (bool paused);
+function isSwapper(address account) external view returns (bool);
+```
 
-`_calculateFee` uses divisor `10_000`.
+A route class is set once. A handler assignment is add-only. One handler address backs one pair. A deposit pause blocks new deposits for that pair. It does not block a purchase, an edit, a withdrawal, a delete, or an rBTC claim.
 
-## Validation Rules (Manager)
+## Fee settings on a handler
 
-- `depositAmount > 0`
-- `withdrawalAmount > 0 && withdrawalAmount <= scheduleBalance`
-- `purchaseAmount >= configuredMinimum`
-- `purchaseAmount <= scheduleBalance / 2`
-- `purchasePeriod >= configuredMinimumPeriod`
-- schedule index + schedule ID must match
-- batch arrays must have equal non-zero length
+```solidity
+struct FeeSettings {
+    uint16 minFeeRate;
+    uint16 maxFeeRate;
+    uint112 feePurchaseLowerBound;
+}
+
+function setFeeRateParams(uint256 minFeeRate, uint256 maxFeeRate, uint256 feePurchaseLowerBound) external;
+function getFeeSettings() external view returns (FeeSettings memory);
+```
+
+Rates are basis points. The maximum rate cannot be above 500. The weight is applied to the rBTC output. The purchase still spends the gross stablecoin amount. No live rate is published.
+
+## Validation that callers hit
+
+- The deposit is greater than zero.
+- The purchase amount meets the token minimum and does not exceed the schedule principal.
+- The period is a whole number of UTC days and meets the protocol minimum.
+- The schedule id exists for that token and belongs to the caller.
+- A delete index currently points at that id.
+- A purchase waits until the next cadence midnight, then skips missed slots.
+- A purchase needs enough principal for one gross purchase.
 
 ## Source
 
-- [dca-contracts repository](https://github.com/BitChillRSK/dca-contracts)
+The public contract repository is [dca-contracts](https://github.com/BitChillRSK/dca-contracts). These pages do not point at a deployed instance.

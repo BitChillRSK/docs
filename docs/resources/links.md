@@ -2,101 +2,67 @@
 sidebar_position: 3
 ---
 
-# Links & Resources
-
-Official BitChill resources and related projects.
+# Links and resources
 
 ## BitChill
 
-### Official Links
-
 | Resource | URL |
-|----------|-----|
-| **Website** | [bitchill.app](https://bitchill.app) |
-| **App** | [dca.bitchill.app](https://dca.bitchill.app) |
-| **Documentation** | [docs.bitchill.app](https://docs.bitchill.app) |
-| **Twitter** | [@BitChillApp](https://x.com/BitChillApp) |
-| **GitHub** | [BitChillRSK](https://github.com/BitChillRSK) |
+| --- | --- |
+| Website | [bitchill.app](https://bitchill.app) |
+| Documentation | [docs.bitchill.app](https://docs.bitchill.app) |
+| Twitter | [@BitChillApp](https://x.com/BitChillApp) |
+| GitHub | [BitChillRSK](https://github.com/BitChillRSK) |
 
-### Source Code
+The app link in the site header is not a deployment of the contracts in these pages. Those contracts are not deployed.
 
-| Repository | Description |
-|------------|-------------|
-| [dca-contracts](https://github.com/BitChillRSK/dca-contracts) | Smart contracts (Solidity) |
+| Repository | What it contains |
+| --- | --- |
+| [dca-contracts](https://github.com/BitChillRSK/dca-contracts) | Solidity contracts |
 | [docs](https://github.com/BitChillRSK/docs) | This documentation site |
 
-### Security
+No manual audit of this protocol version is published. These pages do not link to a report for this version. The audit status is on the [audit page](/docs/security/audits).
+
+## Rootstock
 
 | Resource | URL |
-|----------|-----|
-| April 2025 Audit | [PDF](https://github.com/BitChillRSK/dca-contracts/blob/main/audits/2025-04-29-Ivan-Fitro.pdf) |
-| June 2025 Audit | [PDF](https://github.com/BitChillRSK/dca-contracts/blob/main/audits/2025-06-02-Ivan-Fitro.pdf) |
-| Verified Contracts | [Rootstock Blockscout](https://rootstock.blockscout.com) |
-
----
-
-## Rootstock Ecosystem
-
-### Rootstock (RSK)
-
-| Resource | URL |
-|----------|-----|
+| --- | --- |
 | Website | [rootstock.io](https://rootstock.io/) |
-| Developer Docs | [dev.rootstock.io](https://dev.rootstock.io/) |
-| Block Explorer | [rootstock.blockscout.com](https://rootstock.blockscout.com/) |
-| Powpeg (BTC Bridge) | [app.rsk.co/powpeg](https://app.rsk.co/powpeg/) |
-| Testnet Faucet | [faucet.rootstock.io](https://faucet.rootstock.io/) |
+| Developer docs | [dev.rootstock.io](https://dev.rootstock.io/) |
+| Block explorer | [rootstock.blockscout.com](https://rootstock.blockscout.com/) |
+| PowPeg | [powpeg.rootstock.io](https://powpeg.rootstock.io/) |
+| Testnet faucet | [faucet.rootstock.io](https://faucet.rootstock.io/) |
 
-### RPC Endpoints
+| Network | RPC |
+| --- | --- |
+| Mainnet, chain ID 30 | `https://public-node.rsk.co` |
+| Testnet, chain ID 31 | `https://public-node.testnet.rsk.co` |
 
-| Network | URL |
-|---------|-----|
-| Mainnet | `https://public-node.rsk.co` |
-| Testnet | `https://public-node.testnet.rsk.co` |
+A PowPeg transfer is not a cost-free 1:1 conversion. Backing and an exchange price are different facts.
 
----
+## Venues named by this protocol
 
-## Integrated Protocols
+| Venue | Role here |
+| --- | --- |
+| Money on Chain | DOC purchases, and the DOC stablecoin. [moneyonchain.com](https://moneyonchain.com/) |
+| RIF on Chain | USDRIF. [rif.moneyonchain.com](https://rif.moneyonchain.com/) |
+| Uniswap | USDRIF and USDT0 purchases. [uniswap.org](https://uniswap.org/) |
+| LayerBank | Lending route for DOC, USDRIF, and USDT0 |
+| Sovryn | Lending route for DOC. [sovryn.com](https://sovryn.com/) |
 
-### Lending Protocols
-
-| Protocol | Website | Docs |
-|----------|---------|------|
-| **Tropykus (legacy)** | [tropykus.com](https://tropykus.com/) | [Docs](https://docs.tropykus.com/) |
-| **Sovryn** | [sovryn.com](https://sovryn.com/) | [Wiki](https://wiki.sovryn.com/) |
-
-### Stablecoin Protocols
-
-| Protocol | Website | Description |
-|----------|---------|-------------|
-| **Money on Chain** | [moneyonchain.com](https://moneyonchain.com/) | DOC stablecoin issuer |
-| **RIF on Chain** | [rif.moneyonchain.com](https://rif.moneyonchain.com/) | USDRIF stablecoin |
-
-### DEX Protocols
-
-| Protocol | Website | Description |
-|----------|---------|-------------|
-| **Uniswap** | [uniswap.org](https://uniswap.org/) | V3 on Rootstock |
-
----
+Tropykus is not a venue in this protocol. The idle route is not a lending venue.
 
 ## Wallets
 
-### Recommended Wallets
+| Wallet | Site |
+| --- | --- |
+| Rabby | [rabby.io](https://rabby.io/) |
+| MetaMask | [metamask.io](https://metamask.io/) |
+| Defiant | [defiantapp.tech](https://defiantapp.tech/) |
+| Ledger | [ledger.com](https://www.ledger.com/) |
 
-| Wallet | Platform | Website |
-|--------|----------|---------|
-| **Rabby** | Browser | [rabby.io](https://rabby.io/) |
-| **MetaMask** | Browser/Mobile | [metamask.io](https://metamask.io/) |
-| **Defiant** | Mobile | [defiantapp.tech](https://defiantapp.tech/) |
-| **Ledger** | Hardware | [ledger.com](https://www.ledger.com/) |
+You can add chain ID 30 from [Chainlist](https://chainlist.org/?search=rootstock) or with these values:
 
-### Adding Rootstock to MetaMask
-
-Use Chainlist for easy setup: [chainlist.org](https://chainlist.org/?search=rootstock)
-
-Or manually add:
-```
+```text
 Network: Rootstock Mainnet
 RPC: https://public-node.rsk.co
 Chain ID: 30
@@ -104,70 +70,6 @@ Symbol: RBTC
 Explorer: https://explorer.rsk.co
 ```
 
----
+## Contract addresses
 
-## DeFi Aggregators
-
-### Analytics
-
-| Platform | BitChill Page |
-|----------|---------------|
-| **DefiLlama** | [defillama.com/protocol/bitchill](https://defillama.com/protocol/bitchill) |
-
----
-
-## Educational Resources
-
-### Dollar Cost Averaging
-
-- [Investopedia: DCA](https://www.investopedia.com/terms/d/dollarcostaveraging.asp)
-- [Bitcoin DCA Calculator](https://dcabtc.com/)
-
-### Rootstock
-
-- [What is Rootstock?](https://dev.rootstock.io/concepts/rootstock-overview/)
-- [Rootstock vs Ethereum](https://dev.rootstock.io/concepts/rootstock-ethereum/)
-
-### Smart Contract Security
-
-- [OpenZeppelin Docs](https://docs.openzeppelin.com/)
-- [Consensys Best Practices](https://consensys.github.io/smart-contract-best-practices/)
-
----
-
-## Community
-
-### Get Help
-
-- **Twitter**: [@BitChillApp](https://x.com/BitChillApp) - DMs open
-- **GitHub Issues**: For bug reports and feature requests
-
-### Rootstock Community
-
-| Platform | Link |
-|----------|------|
-| Discord | [discord.gg/rootstock](https://discord.gg/rootstock) |
-| Telegram | [t.me/RSKsmart](https://t.me/RSKsmart) |
-
----
-
-## Contract Addresses (Quick Reference)
-
-### Mainnet
-
-```
-DcaManager:              0x4d9cbe0f242EE85F7Fa25C77329749381bA998be
-OperationsAdmin:         0x942B18A5f78eD612635b6E5FbC49159B5a955f59
-TropykusDocHandler:      0xb60024d0030d7876f02BB766E18F0664e81B0856 (legacy)
-SovrynDocHandler:        0xA1A752784d4d43778ED23771777B18AE9cb66461
-TropykusUsdrifHandler:   0xAfcD7A6F5165F09b049ded06EEC12F5A9E3D09A2 (legacy)
-```
-
-### Tokens
-
-```
-DOC:     0xe700691dA7b9851F2F35f8b8182c69c53CcaD9Db
-USDRIF:  0x3A15461d8aE0F0Fb5Fa2629e9DA7D66A794a6e37
-```
-
-[Full address list →](/docs/contracts/addresses)
+The protocol contracts are not deployed. The only token addresses in this documentation are existing Rootstock tokens on the [address page](/docs/contracts/addresses).

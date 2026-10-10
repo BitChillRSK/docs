@@ -2,92 +2,50 @@
 sidebar_position: 1
 ---
 
-# Connecting Your Wallet
+# Prepare a Rootstock wallet
 
-To use BitChill, you'll need a Web3 wallet configured for Rootstock.
+These pages describe the new protocol. Its contracts are not deployed. You cannot open a schedule on these contracts yet. You can still add Rootstock to a wallet so the account is ready.
 
-## Supported Wallets
+The site navigation can link to the BitChill app. That link is not a deployment of the contracts in these pages.
 
-BitChill supports multiple connection methods:
+## Wallets
 
-- **Rabby** (recommended - most users connect via Rabby)
-- **MetaMask**
-- **Defiant** (optimized for Rootstock)
-- **Ledger** (via MetaMask or other compatible wallets)
-- **WalletConnect** - any WalletConnect-compatible wallet
+A Rootstock wallet can be any wallet that supports chain ID 30. Common choices are Rabby, MetaMask, Defiant, a hardware wallet through a compatible application, and a WalletConnect wallet.
 
-## Configuring Your Wallet for Rootstock
-
-If your wallet doesn't automatically detect Rootstock, add it manually:
-
-### Network Configuration
+## Network values
 
 | Setting | Value |
-|---------|-------|
-| Network Name | Rootstock Mainnet |
+| --- | --- |
+| Network name | Rootstock Mainnet |
 | RPC URL | `https://public-node.rsk.co` |
 | Chain ID | 30 |
-| Currency Symbol | RBTC |
-| Block Explorer | `https://explorer.rsk.co` |
+| Currency symbol | RBTC |
+| Block explorer | `https://explorer.rsk.co` |
 
-### Adding Rootstock to MetaMask
+## Add the network in MetaMask
 
-1. Open MetaMask and click the network dropdown
-2. Click "Add Network" → "Add a network manually"
-3. Enter the network details from the table above
-4. Click "Save"
+1. Open the network list.
+2. Choose to add a network manually.
+3. Enter the values in the table.
+4. Save the network.
 
-## Connecting to BitChill
+## What the account needs later
 
-1. **Visit the App**: Go to [dca.bitchill.app](https://dca.bitchill.app)
+| Asset | Use |
+| --- | --- |
+| rBTC | Gas for a transaction you send |
+| DOC, USDRIF, or USDT0 | The stablecoin a schedule spends |
 
-2. **Click Connect**: Click the "Connect Wallet" button in the top right corner
+rBTC is the native asset. Hold a balance for gas. A bridge or an exchange does not promise a cost-free 1:1 conversion.
 
-3. **Select Your Wallet**: Choose your wallet (Rabby, MetaMask, WalletConnect, etc.)
+## If the wallet fails
 
-4. **Approve Connection**: Confirm the connection request in your wallet
+1. Confirm the selected network is chain ID 30.
+2. Refresh the page.
+3. Retry with another wallet.
+4. For a failed transaction, confirm that the account has rBTC for gas and enough stablecoin for the amount you entered.
 
-5. **Switch Network**: If prompted, approve switching to Rootstock network
+## Read next
 
-Once connected, you'll see your wallet address in the header and can start creating DCA schedules.
-
-## Required Funds
-
-Before creating a schedule, ensure you have:
-
-| Token | Purpose |
-|-------|---------|
-| **rBTC** | Gas fees for transactions |
-| **DOC or USDRIF** | Stablecoins to deposit into your DCA schedule |
-
-:::tip Gas Estimation
-Most BitChill transactions require approximately 0.0001-0.001 rBTC in gas fees. Keep a small rBTC balance for operations like creating schedules, depositing, and withdrawing.
-:::
-
-## Troubleshooting
-
-### Wallet Won't Connect
-
-- Ensure you're on a supported network
-- Try refreshing the page
-- Clear your browser cache
-- Try a different wallet
-
-### Wrong Network
-
-If you see a "Wrong Network" message:
-1. Click the network switch prompt
-2. Approve the network change in your wallet
-3. If manual switching is needed, configure Rootstock as shown above
-
-### Transaction Fails
-
-- Ensure you have enough rBTC for gas
-- Check that your stablecoin balance is sufficient
-- Try increasing gas limit if transactions time out
-
-## Next Steps
-
-Once connected:
-- [Create your first DCA schedule](/docs/user-guide/create-schedule)
-- [Learn about fees](/docs/user-guide/fees)
+- [Create a schedule](/docs/user-guide/create-schedule)
+- [Fees](/docs/user-guide/fees)

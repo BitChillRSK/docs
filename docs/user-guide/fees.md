@@ -4,87 +4,46 @@ sidebar_position: 6
 
 # Fees
 
-BitChill charges a small protocol fee on each purchase to sustain development and infrastructure.
+The purchase fee is taken in rBTC from the swap output. You spend the gross stablecoin amount. The purchase venue receives that stablecoin. You receive the buyer-net rBTC.
 
-## Fee Structure
+The fee is not taken from the stablecoin before the purchase.
 
-Fees are charged **during each purchase**, not on deposits or withdrawals. The fee is:
+The owner sets the fee parameters on each handler. No live percentage is published. The contracts are not deployed, so there is no live rate to read.
 
-1. Calculated based on the purchase amount
-2. Deducted from the stablecoin before swapping
-3. Sent to the protocol fee collector
-4. The remaining amount is swapped for rBTC
+## What the screen shows
 
-**You receive rBTC based on the net amount after fees.**
+The screen shows the gross stablecoin cost and the buyer-net rBTC. The screen does not show an exact fee row.
 
-## Current Fee Rate
+## How the weight works
 
-Deployment defaults are **1% flat** on each purchase (`minFeeRate = maxFeeRate = 100`).
-Live fee values are on-chain and can be changed via handler owner configuration.
+Each purchase has its own fee weight. The weight uses the gross purchase amount and three owner settings:
 
-| Purchase Amount | Fee Rate | Fee Amount | Net Swap Amount |
-|-----------------|----------|------------|-----------------|
-| 50 DOC | 1% | 0.50 DOC | 49.50 DOC |
-| 100 DOC | 1% | 1.00 DOC | 99.00 DOC |
-| 500 DOC | 1% | 5.00 DOC | 495.00 DOC |
+| Setting | Meaning |
+| --- | --- |
+| `maxFeeRate` | Rate used at or below the lower bound, in basis points |
+| `minFeeRate` | Rate the curve approaches above the lower bound, in basis points |
+| `feePurchaseLowerBound` | Gross purchase amount at or below which the maximum rate applies |
 
-## Sliding Scale Fee Model
+One basis point is one ten-thousandth. The denominator is 10,000. The owner sets all three values in one call, `setFeeRateParams`. The contract rejects a minimum rate above the maximum rate. The contract rejects a maximum rate above 500 basis points. That cap is a limit on the setting. It is not a live fee.
 
-While current deployment uses a flat fee, the contracts support a **sliding scale** where larger purchases pay lower percentage fees:
+At or below the lower bound, the weight uses the maximum rate. Above the lower bound, the rate falls toward the minimum rate. When the two rates differ and the bound is positive, the minimum rate is a limit the curve approaches. A larger purchase does not produce a smaller absolute weight.
 
-| Parameter | Description |
-|-----------|-------------|
-| `minFeeRate` | Lowest fee rate (for large purchases) |
-| `maxFeeRate` | Highest fee rate (for small purchases) |
-| `feePurchaseLowerBound` | Below this amount, max rate applies |
-| `feePurchaseUpperBound` | Above this amount, min rate applies |
+The weight is a stablecoin-sized number. It selects the rBTC share. It does not reduce the stablecoin sent into the purchase.
 
-The fee rate interpolates linearly between bounds. Fee rates are expressed in basis points (100 = 1%).
+## How rBTC is split
 
-### Example Sliding Scale
+For a batch, each purchase keeps its own weight. The handler measures the rBTC output. The collector's share and each buyer's share are floored. Small dust can remain uncredited. The buyer-net amount is the buyer's floored share.
 
-If configured as: `minFeeRate=50, maxFeeRate=150, lowerBound=100, upperBound=1000`
+The collector later withdraws that rBTC through the accumulated-rBTC path. There is no deployed fee-collector address in these pages.
 
-| Purchase | Fee Rate |
-|----------|----------|
-| 50 tokens | 1.5% (max) |
-| 550 tokens | 1.0% (midpoint) |
-| 1000+ tokens | 0.5% (min) |
+## What else you pay
 
-## What's Not Charged
+You pay Rootstock gas for a transaction you send. The swapper sends the purchase transaction. A lending venue or a pool can have its own cost. That cost is separate from this purchase-fee weight.
 
-BitChill does **not** charge fees for:
+A deposit, a principal withdrawal, a delete, a schedule edit, an rBTC claim, and an interest withdrawal do not apply this purchase-fee weight. A delete still returns only principal.
 
-- ✅ Depositing stablecoins
-- ✅ Withdrawing your stablecoin balance
-- ✅ Withdrawing accumulated rBTC
-- ✅ Creating or modifying schedules
-- ✅ Withdrawing accrued interest
+## Read next
 
-## Gas Costs
-
-### Automated Purchases
-
-The BitChill swapper infrastructure pays gas for executing your scheduled purchases. You don't pay gas for the actual swap transactions.
-
-### User Transactions
-
-You pay gas for transactions you initiate (create, update, withdraw, delete). Gas usage varies by action and network conditions.
-
-## Fee Transparency
-
-All fee parameters are on-chain and publicly queryable:
-
-```solidity
-handler.getMinFeeRate()
-handler.getMaxFeeRate()
-handler.getFeePurchaseLowerBound()
-handler.getFeePurchaseUpperBound()
-handler.getFeeCollector()
-```
-
-## Next Steps
-
-- [View contract addresses](/docs/contracts/addresses)
-- [Understand the security model](/docs/security/security-model)
+- [Address status](/docs/contracts/addresses)
+- [Security model](/docs/security/security-model)
 - [FAQ](/docs/resources/faq)
