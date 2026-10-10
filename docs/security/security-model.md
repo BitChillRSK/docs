@@ -50,8 +50,8 @@ The manager uses a reentrancy guard on the external calls that change balances, 
 
 - The purchase amount meets the token minimum and does not exceed principal.
 - The period is a whole number of UTC days and meets the minimum.
-- A purchase is eligible at 00:00 UTC on the due day.
-- A missed slot is skipped. The contract does not queue it.
+- The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day.
+- Missed slots are skipped. There is no catch-up.
 - The measured rBTC can be checked against a batch minimum. A short result reverts the purchase.
 - A schedule pause reverts a batch that includes that schedule.
 

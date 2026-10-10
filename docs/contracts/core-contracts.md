@@ -133,7 +133,7 @@ Rates are basis points. The maximum rate cannot be above 500. The weight is appl
 - The period is a whole number of UTC days and meets the protocol minimum.
 - The schedule id exists for that token and belongs to the caller.
 - A delete index currently points at that id.
-- A purchase waits until the next cadence midnight, then skips missed slots.
+- The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day. Missed slots are skipped. There is no catch-up.
 - A purchase needs enough principal for one gross purchase.
 
 ## Source
