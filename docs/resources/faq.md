@@ -34,7 +34,7 @@ The protocol contracts are not deployed. The [address page](/docs/contracts/addr
 
 ### How often can a purchase run?
 
-The cadence is a whole number of UTC days, measured from the cadence anchor. The anchor is a UTC midnight, or zero before the first purchase. It is not the purchase time. A purchase becomes eligible at 00:00 UTC on the due day. There is no guaranteed minute. A missed day is skipped. There is no catch-up purchase.
+The cadence is a whole number of UTC days, measured from the cadence anchor. The anchor is a UTC midnight, or zero before the first purchase. It is not the purchase time. The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day. There is no guaranteed minute. Missed slots are skipped. There is no catch-up.
 
 The deployment script uses a minimum of 7 days. The owner can change the minimum. The contract does not allow a minimum below one UTC day.
 

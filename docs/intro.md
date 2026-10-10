@@ -38,11 +38,11 @@ flowchart TB
 
 1. You create a schedule. You name the stablecoin, the deposit, the purchase amount, the cadence, and the route.
 2. The handler holds the stablecoin. A lending handler can lend it. An idle handler does not lend it.
-3. On a due UTC day, a swapper can submit the purchase. The purchase spends the full gross stablecoin amount. The fee is a share of the measured rBTC output.
+3. The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day. The purchase spends the full gross stablecoin amount. The fee is a share of the measured rBTC output.
 4. The handler stores your buyer-net rBTC until you claim it. That balance is per user, per stablecoin, and per route. It is not stored on each schedule.
 5. You can withdraw principal, delete the schedule, or claim rBTC. A delete returns principal. A delete does not claim interest. A delete does not claim rBTC.
 
-A purchase has no guaranteed minute. A missed cadence slot is skipped. The contract does not promise a catch-up purchase. A purchase also needs the swapper, enough balance, open pause flags, liquidity, a passing price check, and a successful transaction.
+A purchase has no guaranteed minute. A missed cadence slot is skipped. There is no catch-up. A purchase also needs the swapper, enough balance, and a schedule that is not purchase-paused. A deposit pause does not by itself stop a purchase. The purchase also needs liquidity, a passing price check, and a successful transaction.
 
 ## Routes in this protocol
 

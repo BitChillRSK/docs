@@ -16,7 +16,7 @@ A schedule spends one stablecoin on one route and buys rBTC on a UTC-day cadence
 - `purchasePeriod`, the cadence in seconds
 - `routeIndex`, the route that will hold the funds
 
-You approve the stablecoin for the manager, then call the manager. The handler must receive the full deposit. The schedule is credited with that full amount.
+Approve the handler for that token and route. Approve the full deposit. Then call the manager. The handler pulls the deposit to itself. The schedule is credited with that full amount. The handler address comes from the deployment record after deployment. The protocol is not deployed, so this page does not publish a handler address.
 
 ## Checks
 
@@ -40,7 +40,7 @@ The new id is the next decimal counter value. The first id is 1. You keep the id
 
 ## Cadence anchor
 
-A new schedule has a cadence anchor of zero. The anchor is not the creation time, and it is not the purchase time. The first successful purchase sets the anchor to the UTC midnight of that day. Later due times are 00:00 UTC on the due day. The contract does not promise a minute, and it does not catch up a missed day.
+A new schedule has a cadence anchor of zero. The anchor is not the creation time, and it is not the purchase time. The first purchase is eligible on the creation UTC day once the swapper submits it. That purchase sets the anchor to the UTC midnight of that day. A later purchase becomes eligible at 00:00 UTC on the due day. Missed slots are skipped. There is no catch-up. The contract does not promise a minute.
 
 ## After creation
 

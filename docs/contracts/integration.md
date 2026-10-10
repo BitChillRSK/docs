@@ -26,7 +26,7 @@ function getDcaSchedule(address token, uint64 scheduleId) external view returns 
 
 `getDcaSchedules(user, token)` returns two arrays. `scheduleIds[i]` matches `schedules[i]`. Store the id. A later delete can change the list order.
 
-`cadenceAnchor` is a UTC midnight after the first purchase, or zero before it. It is not the purchase timestamp. Eligibility for a later purchase starts at 00:00 UTC on the due day. A missed slot is skipped.
+`cadenceAnchor` is a UTC midnight after the first purchase, or zero before it. It is not the purchase timestamp. The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day. Missed slots are skipped. There is no catch-up.
 
 ## Read buyer-net rBTC
 
@@ -50,7 +50,7 @@ function createDcaSchedule(
 ) external;
 ```
 
-`purchasePeriod` is a whole number of UTC days, in seconds. `purchaseAmount` is the gross stablecoin amount and cannot exceed the deposit. Approve the full deposit to the manager first.
+`purchasePeriod` is a whole number of UTC days, in seconds. `purchaseAmount` is the gross stablecoin amount and cannot exceed the deposit. Approve the handler for that token and route, for the full deposit. The handler pulls the deposit. The handler address comes from the deployment record after deployment. The protocol is not deployed, so this page does not publish a handler address.
 
 Route indexes in the deployment script are 0 for idle, 1 for LayerBank, and 2 for Sovryn. Use a pair from the route table. Tropykus is not a route.
 
