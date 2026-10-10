@@ -2,150 +2,40 @@
 sidebar_position: 5
 ---
 
-# Earning Yield
+# Lending and idle balances
 
-One of BitChill's key features is that your stablecoins earn yield while waiting to be swapped. This page explains how yield generation works.
+Waiting stablecoin sits in the handler for the schedule's route. The idle route earns no lending yield. A LayerBank route and a Sovryn route can lend the stablecoin. Sovryn is a DOC route only.
 
-## How It Works
+The contracts are not deployed. An accrued-interest figure is not available. The offchain system does not store an accrued-interest quote. These pages do not publish a live APY.
 
-When you deposit stablecoins into a BitChill schedule:
+## Routes
 
-1. Your stablecoins are routed by the selected handler into a lending protocol (Sovryn active, Tropykus legacy)
-2. The handler receives lending tokens (kDOC, kUSDRIF, or iSUSD) and tracks your share internally
-3. The lending position accrues value over time as borrowers pay interest
-4. When purchases occur, the required stablecoin amount is redeemed from lending
-5. Your remaining position continues earning yield
+| Route | Waiting stablecoin |
+| --- | --- |
+| Idle | Held by the handler. No lending yield. |
+| LayerBank | Can be lent. DOC, USDRIF, and USDT0 have this route. |
+| Sovryn | Can be lent. DOC has this route. |
 
-```mermaid
-flowchart LR
-    A[Your DOC] --> B[Deposited to Sovryn]
-    B --> C["Handler receives iSUSD"]
-    C --> D[iSUSD accrues value]
-    D --> E[Withdraw when needed]
-```
+Tropykus is not a route in this protocol.
 
-## Yield Accounting
+A purchase spends the schedule's gross purchase amount. It does not spend a separate interest balance by itself. Interest on a lending route stays in the lending position until you withdraw it or credit it to a schedule.
 
-BitChill tracks your yield through the lending token mechanism:
+## What you can do with interest
 
-| Protocol | Lending Token | How Interest Works |
-|----------|--------------|-------------------|
-| Tropykus (legacy) | kDOC, kUSDRIF | Exchange rate increases over time |
-| Sovryn | iSUSD | Asset balance grows via interest |
+On a lending route, the contract has calls to withdraw accrued lending interest and to credit some of it to a schedule's spendable balance. An idle route rejects an interest withdrawal.
 
-### Tropykus (legacy, sunset)
+These pages do not show the amount. An accrued-interest figure is not available.
 
-The handler tracks your position as a kToken balance (`s_kTokenBalances[user]`). The underlying stablecoin value grows as the exchange rate increases:
+A delete returns principal. A delete does not claim interest. A principal withdrawal does not claim interest. Use the interest call when you want the interest.
 
-```
-Underlying stablecoin value = tracked kToken balance × exchange rate
-```
+A schedule pause does not block an interest withdrawal. A deposit pause does not block it. The protected purchase window can block an interest withdrawal for five blocks. Website data does not block it.
 
-As `exchangeRate` increases, your underlying value grows.
+## Risk
 
-### Sovryn
+A lending route depends on that venue. The venue can change liquidity and the yield. The yield is not a published BitChill rate. An idle route removes that lending exposure and also removes lending yield.
 
-The handler tracks your position in iSUSD (`s_iSusdBalances[user]`). As Sovryn yield accrues, the redeemable stablecoin value of that position increases.
+## Read next
 
-## Principal vs Interest
-
-BitChill maintains a clear separation:
-
-| Type | What It Is | How to Withdraw |
-|------|-----------|-----------------|
-| **Principal** | Your original deposit minus purchases | `withdrawToken` or delete schedule |
-| **Interest** | Yield earned on your balance | `withdrawAllAccumulatedInterest` |
-
-:::warning Important
-Regular withdrawals and schedule deletions do **not** automatically include interest!
-:::
-
-## Checking Your Interest
-
-### Via the App
-
-The BitChill dashboard shows your accrued interest per token + lending protocol combination.
-
-### Via Contract
-
-```solidity
-getInterestAccrued(user, token, lendingProtocolIndex)
-```
-
-This returns the interest amount for a specific user and handler.
-
-## Withdrawing Interest
-
-### Option 1: Interest Only
-
-Withdraw just the accrued interest while keeping your schedules active:
-
-```solidity
-withdrawAllAccumulatedInterest(tokens[], lendingProtocolIndexes[])
-```
-
-### Option 2: Combined Withdrawal
-
-Withdraw both principal and interest in one transaction:
-
-```solidity
-withdrawTokenAndInterest(token, scheduleIndex, scheduleId, withdrawalAmount, lendingProtocolIndex)
-```
-
-## Interest and Purchases
-
-**Important clarification**: Scheduled purchases only use your `purchaseAmount`, not your accrued interest.
-
-For example, if you have:
-- Schedule balance: 1000 DOC
-- Accrued interest: 50 DOC
-- Purchase amount: 100 DOC
-
-Each purchase swaps exactly 100 DOC for rBTC. The 50 DOC interest remains untouched and continues earning yield.
-
-## Expected Yields
-
-Yield rates are variable and depend on lending protocol utilization and market conditions.
-
-Check live rates on:
-- **Tropykus (legacy)**: [tropykus.com](https://tropykus.com/)
-- **Sovryn**: [sovryn.app](https://sovryn.app/)
-
-## Risks
-
-Yield generation involves inherent risks:
-
-- **Smart contract risk**: Lending protocol contracts could have vulnerabilities
-- **Liquidity risk**: During high demand, withdrawals might be delayed
-- **Interest rate risk**: APY can fluctuate significantly
-- **Protocol risk**: Lending protocol governance or technical issues
-
-BitChill only integrates with established Rootstock lending protocols, but users should understand these risks.
-
-## Example Scenario
-
-Illustrative example only (not a forecast or guarantee):
-
-- Initial deposit: `1000 DOC`
-- Purchase amount: `100 DOC` weekly
-- Assumed fee: `1%` flat (so `99 DOC` net swapped each week)
-- Assumed lending APY: `8%` (kept constant for illustration)
-- Assumed swap price: `1 BTC = 100,000 DOC` (kept constant for illustration)
-
-Under those fixed assumptions:
-
-| Week | Principal | Interest | Purchased rBTC |
-|------|-----------|----------|----------------|
-| 0 | 1000 DOC | 0 DOC | 0 BTC |
-| 1 | 900 DOC | ~1.5 DOC | ~0.00099 BTC |
-| 2 | 800 DOC | ~2.9 DOC | ~0.00198 BTC |
-| 4 | 600 DOC | ~5.2 DOC | ~0.00396 BTC |
-| 10 | 0 DOC | ~8.5 DOC | ~0.00990 BTC |
-
-Real outcomes will differ based on live lending rates, fee settings, swap execution price, slippage, and timing.
-
-## Next Steps
-
-- [Understanding fees](/docs/user-guide/fees)
+- [Fees](/docs/user-guide/fees)
 - [Security model](/docs/security/security-model)
 - [FAQ](/docs/resources/faq)

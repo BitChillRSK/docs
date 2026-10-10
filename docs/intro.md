@@ -5,85 +5,63 @@ slug: /
 
 # What is BitChill?
 
-BitChill is a **decentralized Dollar Cost Averaging (DCA) protocol** built on [Rootstock](https://rootstock.io/), the Bitcoin sidechain. It enables users to automatically accumulate Bitcoin (rBTC) by depositing stablecoins and executing periodic purchases.
+BitChill is a dollar-cost averaging protocol on [Rootstock](https://rootstock.io/). You deposit a stablecoin on a schedule. An allowlisted swapper can buy rBTC for that schedule. rBTC is the native asset of Rootstock.
 
-## Why BitChill?
+The protocol contracts in these pages are not deployed. No manual audit of this version is published. An audit is planned. The protocol is not deployed before that audit.
 
-Dollar Cost Averaging is a proven investment strategy that reduces the impact of volatility by spreading purchases over time. BitChill automates this process on-chain, providing:
+## What a schedule does
 
-- **Automated Purchases**: Set your schedule once, and BitChill handles the rest
-- **Yield Generation**: Your stablecoins earn yield in lending protocols while waiting to be swapped
-- **Non-Custodial**: You maintain full control of your funds at all times
-- **Transparent**: All operations are executed on-chain with verifiable smart contracts
-- **Bitcoin-Native**: Built on Rootstock, secured by Bitcoin's hashpower
+- You choose one stablecoin and one route.
+- You set a purchase amount and a cadence. The cadence is a whole number of UTC days.
+- You spend the gross stablecoin amount on each purchase. The purchase fee is taken in rBTC from the swap output. You receive the buyer-net rBTC.
+- A lending route can lend the stablecoin that is still waiting. The idle route earns no lending yield.
+- You withdraw, delete, and claim rBTC with your own transaction. Website data never blocks that exit.
 
-## How It Works
+## How a purchase moves
 
 ```mermaid
 flowchart TB
-    subgraph Users [User Layer]
-        User[User Wallet]
-        FE[BitChill dApp]
-    end
-    
-    subgraph Protocol [BitChill Protocol]
-        DCA[DcaManager Contract]
-        TH[Token Handlers]
-        FH[FeeHandler]
-        TH --- FH
-    end
-    
-    subgraph Lending [Lending Protocols]
-        Tropykus["Tropykus (legacy)"]
-        Sovryn[Sovryn]
-    end
-    
-    subgraph DEX [DEX Layer]
-        UniV3[Uniswap V3]
-        MoC[Money on Chain]
-    end
-    
-    User -->|"1. Deposit stablecoins"| FE
-    FE --> DCA
-    DCA --> TH
-    TH -->|"2. Earn yield"| Lending
-    TH -->|"3. Periodic swap"| DEX
-    DEX -->|"4. rBTC stored"| TH
-    TH -->|"5. User withdraws"| User
+    User[User]
+    Manager[DcaManager]
+    Admin[OperationsAdmin]
+    Handler[TokenHandler]
+    Venue[RouteVenue]
+    Purchase[PurchaseVenue]
+
+    User -->|create deposit withdraw delete claim| Manager
+    Manager -->|resolve token and route| Admin
+    Manager -->|move stablecoin and rBTC| Handler
+    Handler -->|hold or lend stablecoin| Venue
+    Handler -->|spend the gross stablecoin| Purchase
+    Purchase -->|rBTC output| Handler
 ```
 
-1. **Deposit**: Deposit DOC or USDRIF stablecoins into a DCA schedule
-2. **Earn**: Your stablecoins are deposited into the selected lending protocol (Sovryn active, Tropykus legacy), earning yield while waiting
-3. **Swap**: Based on your chosen period (1, 2, or 4 weeks), a portion of your stablecoins is swapped for rBTC
-4. **Accumulate**: Purchased rBTC is stored per user per handler, ready for withdrawal
-5. **Withdraw**: Claim your accumulated rBTC whenever you want
+1. You create a schedule. You name the stablecoin, the deposit, the purchase amount, the cadence, and the route.
+2. The handler holds the stablecoin. A lending handler can lend it. An idle handler does not lend it.
+3. The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day. The purchase spends the full gross stablecoin amount. The fee is a share of the measured rBTC output.
+4. The handler stores your buyer-net rBTC until you claim it. That balance is per user, per stablecoin, and per route. It is not stored on each schedule.
+5. You can withdraw principal, delete the schedule, or claim rBTC. A delete returns principal. A delete does not claim interest. A delete does not claim rBTC.
 
-## Key Features
+A purchase has no guaranteed minute. A missed cadence slot is skipped. There is no catch-up. A purchase also needs the swapper, enough balance, and a schedule that is not purchase-paused. A deposit pause does not by itself stop a purchase. The purchase also needs liquidity, a passing price check, and a successful transaction.
 
-| Feature | Description |
-|---------|-------------|
-| **Flexible Periods** | Choose 1, 2, or 4 week purchase intervals |
-| **Multiple Stablecoins** | Support for DOC and USDRIF |
-| **Yield Earning** | Integration with Sovryn and Tropykus lending (Tropykus sunset as legacy) |
-| **Low Fees** | Configurable fee scale based on purchase amount |
-| **Pull-Based Withdrawals** | Withdraw your rBTC when you're ready |
+## Routes in this protocol
 
-## Important Technical Notes
+| Stablecoin | Decimals | Routes |
+| --- | --- | --- |
+| DOC | 18 | Idle, LayerBank, Sovryn |
+| USDRIF | 18 | Idle, LayerBank |
+| USDT0 | 6 | Idle, LayerBank |
 
-- Purchase amount must satisfy contract validation: minimum configured by owner, and `purchaseAmount <= balance / 2`
-- rBTC is tracked per user **per token handler** (token + lending protocol pair), not per schedule
-- Interest is tracked separately from schedule balance and can be withdrawn via dedicated functions
+Tropykus is not a route in this protocol.
 
-## Security
+## Security status
 
-BitChill smart contracts have been audited by an independent security researcher. Audit reports are publicly available.
+The 2025 Ivan Fitro reports cover earlier contract versions. Those reports are not a manual audit of this version. No manual audit of this version is published.
 
-[View Audit Reports →](/docs/security/audits)
+[Read the audit status](/docs/security/audits)
 
-## Get Started
+## Read next
 
-Ready to start DCA'ing into Bitcoin?
-
-1. [Learn how DCA works](/docs/getting-started/how-dca-works)
-2. [See supported tokens and chains](/docs/getting-started/supported-assets)
-3. [Connect your wallet and create a schedule](/docs/user-guide/connect-wallet)
+1. [How a schedule runs](/docs/getting-started/how-dca-works)
+2. [Stablecoins and routes](/docs/getting-started/supported-assets)
+3. [Prepare a Rootstock wallet](/docs/user-guide/connect-wallet)

@@ -2,94 +2,69 @@
 sidebar_position: 1
 ---
 
-# How DCA Works
+# How DCA works
 
-Dollar Cost Averaging (DCA) is an investment strategy where you buy a fixed amount of an asset at regular intervals, regardless of price. This approach:
+Dollar-cost averaging buys a fixed amount on a repeated cadence. You do not choose a single entry price. BitChill records that cadence in a schedule on Rootstock.
 
-- **Reduces timing risk**: You don't need to predict market tops or bottoms
-- **Smooths out volatility**: Your average purchase price is more stable over time
-- **Removes emotion**: Automated purchases prevent panic selling or FOMO buying
-- **Builds discipline**: Consistent investing regardless of market conditions
+The contracts that run this schedule are not deployed.
 
-## Traditional DCA vs BitChill
+## What you set
 
-| Aspect | Traditional DCA | BitChill |
-|--------|----------------|----------|
-| Execution | Manual (remember to buy) | Automatic (smart contracts) |
-| Frequency | Self-discipline required | Executed by swapper role when due |
-| Idle funds | Sit in exchange/wallet | Earn yield in lending protocols |
-| Custody | Often on exchanges | Non-custodial, your keys |
-| Transparency | Trust the exchange | Verifiable on-chain |
+A schedule stores these facts:
 
-## How BitChill Automates DCA
+- The stablecoin: DOC, USDRIF, or USDT0.
+- The route: idle, LayerBank, or Sovryn, for the pairs this protocol uses.
+- The deposit, which is principal the schedule can still spend or withdraw.
+- The purchase amount, in that stablecoin. This amount is the gross cost of one purchase.
+- The cadence, as a whole number of UTC days.
+- A pause flag for purchases on that schedule.
 
-### Step 1: Create Your Schedule
+The schedule id is a decimal number. You use that id together with the stablecoin. The id comes from a counter. It starts at 1. A delete retires the id. The protocol does not reuse it.
 
-When creating a schedule in BitChill, you configure:
+## Cadence
 
-- **Token**: Choose DOC or USDRIF as your stablecoin
-- **Deposit Amount**: How much to deposit initially
-- **Purchase Amount**: How much to convert to rBTC each period
-- **Purchase Period**: How often (1, 2, or 4 weeks)
-- **Lending Protocol**: Where your stablecoins earn yield (Sovryn active; Tropykus legacy)
+The cadence is a grid of UTC midnights. The cadence anchor is the UTC midnight of the newest consumed slot. The anchor is zero before the first purchase. The anchor is not the time of the purchase transaction.
 
-**Contract validations:**
-- `purchaseAmount >= configuredTokenMinimum`
-- `purchaseAmount <= currentScheduleBalance / 2`
-- `purchasePeriod >= configuredMinimumPeriod`
+The first purchase is eligible on the creation UTC day once the swapper submits it. When it succeeds, it sets the anchor to the UTC midnight of that day. A later purchase becomes eligible at 00:00 UTC on the due day. The contract does not reserve a minute inside that day. If several due days pass before a purchase succeeds, the purchase consumes the newest due slot and skips the missed slots. There is no catch-up.
 
-### Step 2: Your Stablecoins Earn Yield
+A due day is not a completed purchase. The swapper must submit the transaction. The schedule must have enough principal for one purchase. A schedule pause blocks that purchase. Liquidity, a price check, and a successful transaction are also required.
 
-After creating a schedule, your stablecoins are deposited into the selected lending protocol:
+## One purchase
 
-- **Sovryn**: Lending pool integration (iSUSD) - active for new schedules
-- **Tropykus**: Compound-style lending (kDOC, kUSDRIF tokens) - legacy/sunset
+1. The swapper names the stablecoin, the route, and the schedule id.
+2. The schedule spends the gross purchase amount in stablecoin.
+3. The purchase venue receives that stablecoin. DOC purchases redeem through Money on Chain. USDRIF and USDT0 purchases swap through Uniswap.
+4. The purchase fee is a share of the measured rBTC output. The fee is not taken from the stablecoin before the purchase.
+5. The handler credits you with the buyer-net rBTC.
 
-Your funds earn interest while waiting to be swapped for rBTC.
+The screen shows the gross stablecoin cost and the buyer-net rBTC. The screen does not show an exact fee row.
 
-### Step 3: Automatic Periodic Purchases
+## Where rBTC sits
 
-At each scheduled interval, the BitChill swapper infrastructure:
+Purchased rBTC stays in the handler until you claim it. One handler serves one stablecoin and one route. Schedules that share that pair add rBTC to the same balance.
 
-1. Verifies the purchase period has elapsed
-2. Withdraws the purchase amount from lending
-3. Deducts a small protocol fee
-4. Swaps the remaining amount for rBTC via Money on Chain (DOC) or Uniswap V3 (USDRIF)
-5. Credits the purchased rBTC to your account
+## Where the stablecoin sits
 
-### Step 4: rBTC Accumulates in Handlers
+| Route | What happens to waiting stablecoin |
+| --- | --- |
+| Idle | The handler holds it. It earns no lending yield. |
+| LayerBank | The handler can lend it. |
+| Sovryn | The handler can lend it. Sovryn is a DOC route only. |
 
-Purchased rBTC is tracked in handler storage:
+## A principal example
 
-```
-mapping(user => accumulatedRbtc)
-```
+This table follows principal only. It uses a gross purchase of 100 DOC and a 7-day cadence. It does not show a fee, a price, or an interest amount. An accrued-interest figure is not available.
 
-**Important**: rBTC is tracked per user **per handler** (token + lending protocol combination), not per individual schedule. If you have multiple schedules with the same token and lending protocol, the rBTC accumulates together.
+| Due day | Principal before the purchase | Gross stablecoin spent |
+| --- | --- | --- |
+| Start | 1000 DOC | None |
+| First due day | 1000 DOC | 100 DOC |
+| Next due day | 900 DOC | 100 DOC |
 
-### Step 5: Withdraw When Ready
+If a due day is missed, that row does not run later as an extra purchase.
 
-BitChill uses a "pull" pattern for withdrawals. Your rBTC stays in the handler contracts until you're ready to withdraw:
+## Read next
 
-- **Withdraw from one handler**: `withdrawRbtcFromTokenHandler`
-- **Withdraw from all handlers**: `withdrawAllAccumulatedRbtc`
-- **Withdraw stablecoin principal**: `withdrawToken` or delete the schedule
-- **Withdraw accrued interest**: `withdrawAllAccumulatedInterest`
-
-## Example DCA Journey
-
-Let's say you deposit 1000 DOC with a 100 DOC weekly purchase amount:
-
-| Week | Schedule Balance | Purchase | Accumulated rBTC | Notes |
-|------|-----------------|----------|------------------|-------|
-| 0 | 1000 DOC | - | 0 | Initial deposit |
-| 1 | 900 DOC | 100 DOC | ~0.001 BTC | First purchase |
-| 2 | 800 DOC | 100 DOC | ~0.002 BTC | Price might vary |
-| ... | ... | ... | ... | Continues until balance runs out |
-
-Meanwhile, your remaining DOC balance earns interest in the selected lending protocol.
-
-## Next Steps
-
-- [See supported tokens and protocols](/docs/getting-started/supported-assets)
-- [Create your first schedule](/docs/user-guide/create-schedule)
+- [Stablecoins and routes](/docs/getting-started/supported-assets)
+- [Create a schedule](/docs/user-guide/create-schedule)
+- [Fees](/docs/user-guide/fees)

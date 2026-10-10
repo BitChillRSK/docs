@@ -2,75 +2,72 @@
 sidebar_position: 1
 ---
 
-# Architecture Overview
+# Architecture
 
-BitChill uses a manager + handler architecture:
-
-- `DcaManager`: user-facing entry point and schedule state
-- `OperationsAdmin`: handler registry + roles
-- Token handlers: token/lending/swap implementation units
-
-## High-Level Flow
+BitChill uses one manager, one registry, and one handler for each stablecoin and route. The contracts are not deployed.
 
 ```mermaid
 flowchart TB
-    U[User]
-    D[DcaManager]
-    O[OperationsAdmin]
-    H[Token Handler]
-    L[Lending Protocol]
-    S[Swap Backend]
+    User[User]
+    Swapper[AllowlistedSwapper]
+    Manager[DcaManager]
+    Admin[OperationsAdmin]
+    Handler[TokenHandler]
+    Venue[IdleOrLending]
+    Purchase[MocOrUniswap]
 
-    U -->|create/update/withdraw| D
-    D -->|resolve handler by token+protocol index| O
-    D -->|delegate token/purchase actions| H
-    H -->|deposit/redeem when applicable| L
-    H -->|swap stablecoin to rBTC| S
-    H -->|track user accumulated rBTC| H
+    User -->|schedule funds and claims| Manager
+    Swapper -->|purchase batch| Manager
+    Manager -->|handler lookup| Admin
+    Manager -->|stablecoin and rBTC| Handler
+    Handler -->|hold or lend| Venue
+    Handler -->|gross stablecoin purchase| Purchase
 ```
 
-## Contracts and Responsibilities
+## DcaManager
 
-### DcaManager
+The manager is the user entry and the swapper entry. It stores the schedule ledger. It does not hold the stablecoin, and it does not hold the rBTC.
 
-- stores schedules: `mapping(user => mapping(token => DcaDetails[]))`
-- validates schedule index + schedule ID
-- enforces purchase period and purchase amount rules
-- delegates stablecoin/rBTC operations to handler resolved from `OperationsAdmin`
+A schedule is stored under the stablecoin and a decimal schedule id. The value holds the principal, the cadence anchor, the pause flag, the period, the route, the owner, and the purchase amount.
 
-### OperationsAdmin
+## OperationsAdmin
 
-- registry key: `keccak256(token, lendingProtocolIndex)` -> handler address
-- role management (`ADMIN_ROLE`, `SWAPPER_ROLE`)
-- lending protocol name/index mapping
+The registry maps a stablecoin and a route index to one handler. Index 0 is idle. The owner registers other indexes as idle or lending. In the deployment script, index 1 is LayerBank and index 2 is Sovryn.
 
-### Handlers
+The owner assigns a handler once for each pair. The owner can pause new deposits for one assigned pair. The owner keeps the swapper allowlist.
 
-Concrete handlers combine:
+## Handlers
 
-- token custody and transfer logic (`TokenHandler`)
-- optional lending integration (`SovrynErc20Handler`; `TropykusErc20Handler` legacy)
-- purchase backend (`PurchaseMoc` or `PurchaseUniswap`)
-- fee calculation (`FeeHandler`)
+A handler custodies the stablecoin for one pair and the rBTC bought for that pair. Users call the manager. The handler accepts those balance changes from the manager.
 
-## Active Mainnet Handlers
+| Pair | Handler family | Purchase |
+| --- | --- | --- |
+| DOC idle | Idle DOC handler | Money on Chain |
+| DOC LayerBank | LayerBank DOC handler | Money on Chain |
+| DOC Sovryn | Sovryn DOC handler | Money on Chain |
+| USDRIF idle | Idle DEX handler | Uniswap |
+| USDRIF LayerBank | LayerBank DEX handler | Uniswap |
+| USDT0 idle | Idle DEX handler | Uniswap |
+| USDT0 LayerBank | LayerBank DEX handler | Uniswap |
 
-- `SovrynDocHandlerMoc`
-- `TropykusDocHandlerMoc` (legacy)
-- `TropykusErc20HandlerDex` (USDRIF, legacy)
+Tropykus is not a handler route in this protocol. An idle handler does not lend.
 
-## Access Model
+## Who can call
 
-- Users: manage only own schedules/funds
-- `SWAPPER_ROLE`: execute purchases
-- `ADMIN_ROLE`: configure handlers/protocol mappings and swapper role
-- Owner roles: ownership-level configuration functions in manager/admin/handlers
+| Caller | Allowed work |
+| --- | --- |
+| Schedule owner | Create, fund, edit, pause purchases, withdraw, delete, and claim for that account |
+| Allowlisted swapper | Submit a purchase batch and open the protected purchase window |
+| Owner | Set routes, handlers, deposit pauses, swappers, fee parameters, and schedule limits |
 
-## Reentrancy Coverage
+## Purchase path
 
-ReentrancyGuard is applied in DcaManager on critical external state-changing functions (deposits/withdrawals/purchase execution and aggregated withdrawal flows). It is not a blanket modifier on every external function.
+The swapper submits one or more due schedule ids for one stablecoin and one route. The manager reads the buyer and the gross amount from the schedule. The handler spends that gross stablecoin. The fee is a share of the measured rBTC output. The buyer is credited with buyer-net rBTC.
 
-## Next Steps
+A batch can require a minimum rBTC output. If the measured output is below that minimum, the purchase reverts.
 
-- [Core contracts](/docs/contracts/core-contracts)
-- [Integration guide](/docs/contracts/integration)
+## Read next
+
+- [Core calls](/docs/contracts/core-contracts)
+- [Address status](/docs/contracts/addresses)
+- [Integration notes](/docs/contracts/integration)

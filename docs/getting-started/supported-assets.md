@@ -2,147 +2,83 @@
 sidebar_position: 2
 ---
 
-# Supported Tokens & Chains
+# Supported tokens and routes
 
-## Rootstock Network
+BitChill is built for Rootstock. The protocol contracts in these pages are not deployed.
 
-BitChill operates on **Rootstock (RSK)**, an EVM-compatible Bitcoin sidechain. This means:
-
-- **Bitcoin Security**: Rootstock is merge-mined with Bitcoin, inheriting its security
-- **EVM Compatible**: Use familiar tools like MetaMask, Rabby, ethers.js
-- **rBTC**: The native token, pegged 1:1 to Bitcoin via a two-way peg
-
-### Network Details
+## Rootstock
 
 | Parameter | Value |
-|-----------|-------|
-| Network Name | Rootstock Mainnet |
+| --- | --- |
+| Network name | Rootstock Mainnet |
 | Chain ID | 30 |
-| Native Token | rBTC |
-| RPC URL | `https://public-node.rsk.co` |
-| Block Explorer | [rootstock.blockscout.com](https://rootstock.blockscout.com) |
+| Native asset | rBTC |
+| Public RPC | `https://public-node.rsk.co` |
+| Block explorer | [rootstock.blockscout.com](https://rootstock.blockscout.com) |
 
-## Supported Stablecoins
+rBTC is the native asset of Rootstock. A description of backing is not an exchange price. A conversion between BTC and rBTC is not a promise of a cost-free 1:1 exchange. A bridge transfer has its own cost and time. A market price is a separate fact.
 
-BitChill currently supports two stablecoins for DCA:
+## Stablecoins
 
-### DOC (Dollar on Chain)
+| Stablecoin | Decimals | Routes in this protocol |
+| --- | --- | --- |
+| DOC | 18 | Idle, LayerBank, Sovryn |
+| USDRIF | 18 | Idle, LayerBank |
+| USDT0 | 6 | Idle, LayerBank |
 
-DOC is an algorithmic stablecoin from the Money on Chain protocol, overcollateralized by Bitcoin.
+This page publishes one stablecoin address. USDT0 at `0x779Ded0c9e1022225f8E0630b35a9b54bE713736` is the existing Rootstock token. It is not a BitChill deployment.
 
-| Property | Value |
-|----------|-------|
-| Contract | `0xe700691dA7b9851F2F35f8b8182c69c53CcaD9Db` |
-| Decimals | 18 |
-| Peg | 1 USD |
-| Collateral | Bitcoin (via MoC system) |
+DOC and USDRIF are the other two stablecoins in the route table. This page does not publish a DOC address or a USDRIF address.
 
-### USDRIF
+## Route pairs
 
-USDRIF is a stablecoin from the RIF ecosystem.
+Each pair is one stablecoin and one route. The deployment script assigns one handler to each pair. Those handler contracts are not deployed.
 
-| Property | Value |
-|----------|-------|
-| Contract | `0x3A15461d8aE0F0Fb5Fa2629e9DA7D66A794a6e37` |
-| Decimals | 18 |
-| Peg | 1 USD |
+| Stablecoin | Route | Lending yield while the stablecoin waits | Purchase venue |
+| --- | --- | --- | --- |
+| DOC | Idle | None | Money on Chain |
+| DOC | LayerBank | Lending is possible | Money on Chain |
+| DOC | Sovryn | Lending is possible | Money on Chain |
+| USDRIF | Idle | None | Uniswap |
+| USDRIF | LayerBank | Lending is possible | Uniswap |
+| USDT0 | Idle | None | Uniswap |
+| USDT0 | LayerBank | Lending is possible | Uniswap |
 
-## Active Handler Matrix
+Tropykus is not a route in this protocol. The idle route earns no lending yield.
 
-Each combination of stablecoin and lending protocol has a dedicated handler:
+The route index in the contracts is a number:
 
-| Stablecoin | Lending Protocol | Swap Method | Status |
-|------------|------------------|-------------|--------|
-| DOC | Tropykus | Money on Chain | Legacy (sunset) |
-| DOC | Sovryn | Money on Chain | Active |
-| USDRIF | Tropykus | Uniswap V3 | Legacy (sunset) |
+| Index | Route |
+| --- | --- |
+| 0 | Idle |
+| 1 | LayerBank |
+| 2 | Sovryn |
 
-**Note**: Tropykus is sunset and kept only for legacy references. New schedules use Sovryn. USDRIF + Sovryn is not deployed.
+## Receipt tokens named for Rootstock
 
-## Lending Protocol Integration
+These addresses are existing Rootstock tokens. They are not BitChill contracts.
 
-Your stablecoins earn yield while waiting to be swapped. BitChill integrates with:
+| Token | Address |
+| --- | --- |
+| LayerBank USDRIF receipt | `0xc96fBD12bE56Dd565b258d243344bCf792A51128` |
+| LayerBank USDT0 receipt | `0x6bE7d4cfCe825b106aa88F6916A412c5af230Ec0` |
 
-### Tropykus (legacy)
+## rBTC for gas
 
-A Compound-style lending protocol on Rootstock.
+Your own transactions need rBTC for Rootstock gas. The swapper submits a purchase transaction. You submit create, deposit, edit, withdraw, delete, and claim transactions.
 
-| Token | Lending Token | Address |
-|-------|--------------|---------|
-| DOC | kDOC | `0x544Eb90e766B405134b3B3F62b6b4C23Fcd5fDa2` |
-| USDRIF | kUSDRIF | `0xDdf3CE45fcf080DF61ee61dac5Ddefef7ED4F46C` |
+Ways to obtain rBTC include the Rootstock PowPeg, a cross-chain service that supports Rootstock rBTC, a fiat on-ramp that withdraws to Rootstock, or a transfer from another Rootstock account. Confirm that the service delivers Rootstock rBTC. A transfer is not a cost-free 1:1 conversion.
 
-### Sovryn
+- PowPeg: [powpeg.rootstock.io](https://powpeg.rootstock.io/)
 
-A DeFi platform on Rootstock with lending capabilities.
+## Stablecoin sources
 
-| Token | Lending Token | Address |
-|-------|--------------|---------|
-| DOC | iSUSD | `0xd8D25f03EBbA94E15Df2eD4d6D38276B595593c1` |
+DOC is the Money on Chain dollar token. You can mint it or swap for it on Rootstock. USDRIF is the RIF dollar token. USDT0 is the Rootstock token named above. This protocol does not issue these stablecoins.
 
-## Swap Methods
+- Money on Chain: [moneyonchain.com](https://moneyonchain.com/)
+- RIF on Chain: [rif.moneyonchain.com](https://rif.moneyonchain.com/)
 
-BitChill uses different swap backends depending on the stablecoin:
+## Read next
 
-### Money on Chain (DOC)
-
-DOC handlers redeem DOC for rBTC through the Money on Chain protocol. This is a native redemption, not a DEX swap.
-
-### Uniswap V3 (USDRIF, legacy)
-
-Legacy USDRIF handlers swap via Uniswap V3 pools on Rootstock. The swap path and fee tiers are configured per handler, with oracle-based slippage protection.
-
-## How to Get Tokens
-
-### Getting rBTC
-
-You'll need a small amount of rBTC in your Rootstock wallet to pay gas before using BitChill.
-
-- **Native PowPeg (BTC → rBTC)**  
-  Bridge BTC from Bitcoin mainnet via Rootstock's trust-minimized PowPeg:  
-  [powpeg.rootstock.io](https://powpeg.rootstock.io/)
-
-- **Cross-chain swaps (crypto → rBTC)**  
-  Use cross-chain aggregators and bridges (e.g. [Jumper](https://jumper.exchange/), [Rubic](https://rubic.exchange/), [Boltz](https://boltz.exchange/)) to swap from other networks (Ethereum, BSC, etc.) into rBTC on Rootstock.  
-  Connect your wallet, choose your source chain/token, and set rBTC on Rootstock as the destination.
-
-- **Fiat or card on-ramps (fiat → rBTC)**  
-  Services like [Mt Pelerin](https://www.mtpelerin.com/) or [Onramp](https://onramp.money/) let you buy rBTC directly with bank transfer or card and withdraw to a Rootstock address.
-
-- **Peer-to-peer**  
-  You can also buy rBTC from another Rootstock user (OTC), sending them BTC, fiat, or another asset in exchange for rBTC to your wallet.
-
-:::tip Verify the network
-Always verify that the service you use explicitly supports **Rootstock rBTC** (smart Bitcoin) and not some unrelated token that happens to use the same ticker on another chain.
-:::
-
-### Getting DOC
-
-DOC is a Bitcoin-collateralized stablecoin on Rootstock.
-
-- **Mint with rBTC (protocol-native)**  
-  Use the Money On Chain dApp to mint DOC by depositing rBTC as collateral:  
-  [dapp.moneyonchain.com](https://dapp.moneyonchain.com)
-
-- **Swap on Rootstock DEXs**  
-  Swap rBTC, USDT or other Rootstock tokens for DOC on DEXs such as [OKU Trade](https://oku.trade/app/rootstock/swap)
-
-- **From USDT on other networks (via Stargate + OKU)**  
-  1. Bridge USDT to Rootstock using [Stargate](https://stargate.finance/) (LayerZero)
-  2. On Rootstock, use [OKU Trade](https://oku.trade/app/rootstock/swap) to swap USDT → DOC
-
-### Getting USDRIF
-
-USDRIF is a stablecoin from the RIF ecosystem.
-
-- **Mint via RIF on Chain**  
-  Mint USDRIF through the RIF on Chain protocol:  
-  [rif.moneyonchain.com](https://rif.moneyonchain.com/)
-
-- **Swap on Rootstock DEXs**  
-  Swap rBTC or other tokens for USDRIF on [OKU Trade](https://oku.trade/app/rootstock/swap)
-
-## Next Steps
-
-- [Create a DCA schedule](/docs/user-guide/create-schedule)
-- [View deployed contract addresses](/docs/contracts/addresses)
+- [Create a schedule](/docs/user-guide/create-schedule)
+- [Contract address status](/docs/contracts/addresses)

@@ -2,88 +2,82 @@
 sidebar_position: 2
 ---
 
-# Security Model
+# Security model
 
-BitChill uses role-based controls, strict schedule validation, and audited contract code to protect protocol operations.
+This page describes the controls in the undeployed contracts. No manual audit of this version is published. An audit is planned. The protocol is not deployed before that audit.
 
-## Core Principles
+## User control
 
-### Non-custodial User Operations
+You sign the calls that move your funds:
 
-Users directly control their own schedule actions from wallet-signed transactions:
+- create, fund, edit, and pause a schedule
+- withdraw principal
+- delete a schedule, which returns principal
+- claim rBTC
+- on a lending route, withdraw or credit interest
 
-- create/update/delete schedules
-- deposit/withdraw stablecoins
-- withdraw accumulated rBTC
-- withdraw accrued interest
+The manager stores the schedule. The handler holds the stablecoin and the rBTC. A claim pays rBTC when you request it. The purchase transaction does not force that payment.
 
-### Pull-based rBTC Withdrawals
+Website data never blocks a user exit. A missing or stale page is not a lock on the contract.
 
-Handlers accumulate rBTC balances per user, and users withdraw when desired. This avoids forcing automatic transfers during purchase execution.
+## Pauses
 
-### Explicit On-chain Permissions
+| Pause | Who sets it | What it blocks |
+| --- | --- | --- |
+| Schedule pause | The schedule owner | Purchases for that schedule |
+| Deposit pause | The owner, for one token and one route | New deposits for that pair |
 
-Protocol behavior is gated by clearly defined roles and ownership functions.
+Neither pause blocks a withdrawal, a delete, an rBTC claim, or an edit.
 
-## Access Control Model
+## Protected window
 
-### DcaManager
+A swapper can open a five-block window before a purchase batch. During that window the contract refuses an amount edit, a period edit, a pause edit, a delete, a principal withdrawal, and an interest withdrawal. An rBTC claim stays available. A deposit stays available unless that pair is deposit-paused.
 
-- `onlySwapper` on purchase execution (`buyRbtc`, `batchBuyRbtc`)
-- owner functions for manager-level configuration (operations admin pointer and purchase constraints)
+The window stops a user from changing the purchased state after the swapper has prepared the batch. It is not a pause of the exit forever. The blocked calls return after the window.
 
-### OperationsAdmin
+## Callers
 
-- `ADMIN_ROLE`: handler mapping, lending protocol registry, swapper role management
-- owner: admin role assignment/revocation
+| Caller | Gate |
+| --- | --- |
+| User | The schedule's `user` field must be the caller |
+| Swapper | The registry allowlist |
+| Owner | Owner-only configuration |
+| Handler entry | The call must come from the manager |
 
-### Handlers
+The manager uses a reentrancy guard on the external calls that change balances, edit schedules, run purchases, and pay claims.
 
-- `onlyDcaManager` on user-balance-affecting token operations
-- owner-managed handler configuration (fees, swap path/oracle settings where applicable)
+## Purchase limits
 
-## Key Contract Defenses
+- The purchase amount meets the token minimum and does not exceed principal.
+- The period is a whole number of UTC days and meets the minimum.
+- The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day.
+- Missed slots are skipped. There is no catch-up.
+- The measured rBTC can be checked against a batch minimum. A short result reverts the purchase.
+- A schedule pause reverts a batch that includes that schedule.
 
-### Schedule Index + ID verification
+## Fee limit
 
-State-changing schedule calls validate both index and `scheduleId`, reducing index mismatch risk when arrays reorder after deletions.
+The owner sets the fee curve on each handler. The contract rejects a maximum rate above 500 basis points. The fee is taken from the rBTC output. The gross stablecoin amount is still spent. No live rate is published.
 
-### Reentrancy protection on critical manager flows
+## External systems
 
-DcaManager applies `nonReentrant` on sensitive external workflows (deposits, withdrawals, purchase execution, aggregate withdrawals).
+A purchase or a lending route depends on systems outside these contracts:
 
-### Input constraints
+- Money on Chain, for a DOC purchase
+- Uniswap, for a USDRIF or USDT0 purchase
+- LayerBank, for a LayerBank route
+- Sovryn, for the DOC Sovryn route
+- Rootstock block production and gas
 
-- `depositAmount > 0`
-- `withdrawalAmount > 0 && withdrawalAmount <= scheduleBalance`
-- `purchaseAmount >= configuredMinimum`
-- `purchaseAmount <= scheduleBalance / 2`
-- `purchasePeriod >= configuredMinimumPeriod`
+Tropykus is not a route in this protocol. The idle route does not depend on a lending venue.
 
-### Safe ERC20 operations
+A DEX purchase uses a price check and a minimum output. A Money on Chain redemption uses the Money on Chain price and can also face the batch minimum. A failed check reverts the purchase.
 
-Handlers use OpenZeppelin `SafeERC20` for transfers and approvals.
+## Deployment shape
 
-## External Dependencies
+The deployment script creates new contract instances and assigns each handler once. These pages do not describe a proxy upgrade of a live deployment, because this version is not deployed.
 
-BitChill depends on external protocols for lending/swapping routes used by active handlers:
+## Read next
 
-- Sovryn
-- Money on Chain
-- Tropykus (legacy)
-- Uniswap V3 (legacy)
-
-Operational outcomes also depend on Rootstock network conditions and dependency health.
-
-## Oracle/Slippage Handling (DEX Handlers)
-
-`PurchaseUniswap` computes `amountOutMinimum` using MoC oracle `getPriceInfo()` validity checks plus configurable minimum output percentages.
-
-## Contract Upgradability
-
-Core contracts in this repository are not proxy-upgradeable. New behavior is introduced by deploying and registering new contract instances.
-
-## Security References
-
-- [Audit reports](/docs/security/audits)
-- [Source code](https://github.com/BitChillRSK/dca-contracts)
+- [Audit status](/docs/security/audits)
+- [Contract source](https://github.com/BitChillRSK/dca-contracts)

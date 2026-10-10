@@ -4,95 +4,114 @@ sidebar_position: 2
 
 # Glossary
 
-Quick reference for terms used throughout BitChill documentation.
+## Protocol
 
-## Protocol Concepts
+### Dollar-cost averaging
 
-### DCA (Dollar Cost Averaging)
-An investment strategy where you buy a fixed amount of an asset at regular intervals, regardless of price. This reduces the impact of volatility over time.
+You buy a fixed gross amount on a repeated cadence.
 
 ### Schedule
-A DCA configuration created by a user, specifying the token, purchase amount, period, and lending protocol. Each schedule has a unique ID and tracks its own stablecoin balance.
 
-### Purchase Period
-The time interval between automatic purchases. BitChill currently offers 1, 2, or 4 week options. The contract stores this in seconds and enforces a minimum.
+One owner's recurring purchase of rBTC with one stablecoin on one route. The key is the stablecoin plus a decimal schedule id.
 
-### Purchase Amount
-The amount of stablecoin converted to rBTC on each scheduled purchase. Must be at least the configured minimum and no more than half the schedule balance.
+### Schedule id
 
-### Accumulated rBTC
-The rBTC a user has accumulated through DCA purchases. Tracked per user per handler (not per schedule), and withdrawable at any time.
+A decimal counter value. The first id is 1. You use it with the stablecoin. A delete retires the id.
 
-## Smart Contracts
+### Cadence
+
+The purchase period. It is a whole number of UTC days.
+
+### Cadence anchor
+
+The UTC midnight of the newest consumed cadence slot. It is zero before the first purchase. It is not the time of the purchase transaction.
+
+### Gross purchase amount
+
+The stablecoin amount the schedule spends on one purchase. The fee is not subtracted from this amount before the purchase.
+
+### Buyer-net rBTC
+
+The rBTC credited to the buyer after the purchase fee is taken from the measured rBTC output.
+
+### Route
+
+The idle or lending destination for one stablecoin. Index 0 is idle. Index 1 is LayerBank. Index 2 is Sovryn.
+
+### Schedule pause
+
+A flag the owner of the schedule sets. It blocks purchases for that schedule.
+
+### Deposit pause
+
+An owner flag for one stablecoin and one route. It blocks new deposits for that pair.
+
+### Protected purchase window
+
+Five blocks opened by a swapper. During the window, selected edits, deletes, and stablecoin withdrawals are refused. An rBTC claim stays available.
+
+## Contracts
 
 ### DcaManager
-The main BitChill contract. Handles schedule creation, updates, deletions, and coordinates with handlers for deposits, purchases, and withdrawals.
+
+The user and swapper entry. It stores schedules. It does not hold the tokens.
 
 ### OperationsAdmin
-Registry and role management contract. Maps tokens and lending protocol indexes to their handlers, and manages protocol roles (owner, swapper).
+
+The registry of routes, handlers, the swapper allowlist, and deposit pauses.
 
 ### Handler
-A contract that manages funds for a specific token + lending protocol combination. Handles deposits, lending integration, fee calculation, and purchase execution.
 
-### FeeHandler
-Base contract inherited by handlers. Implements the fee calculation logic (flat or sliding scale) and fee transfers.
+The contract that holds stablecoin and rBTC for one stablecoin and one route.
 
-### Token Handler
-A specific handler instance, such as "SovrynDocHandler". Each handler has its own accumulated rBTC tracking.
+### Swapper
 
-## Tokens & Protocols
+An allowlisted account that can submit a purchase batch and open the protected window.
+
+## Assets
 
 ### rBTC
-Rootstock's native token, pegged 1:1 to Bitcoin. This is what you accumulate through BitChill DCA.
 
-### WRBTC
-Wrapped rBTC, an ERC-20 token. Used internally for DEX swaps before being unwrapped for user withdrawals. No longer used as of Tropykus' sunset.
+The native asset of Rootstock. Backing and an exchange price are different facts. A conversion is not a cost-free 1:1 promise.
 
-### DOC (Dollar on Chain)
-An algorithmic stablecoin from Money on Chain, overcollateralized by Bitcoin. One of the supported deposit tokens.
+### DOC
+
+A Money on Chain stablecoin with 18 decimals. This protocol pairs it with idle, LayerBank, and Sovryn.
 
 ### USDRIF
-A stablecoin from the RIF ecosystem on Rootstock. One of the supported deposit tokens.
 
-### kToken
-Tropykus lending tokens (kDOC, kUSDRIF). Represent your deposit in Tropykus and accrue value over time as interest.
+A RIF stablecoin with 18 decimals. This protocol pairs it with idle and LayerBank.
 
-### iSUSD
-Sovryn's lending token used for DOC deposits. Represents your deposit in Sovryn's lending pool.
+### USDT0
 
-## External Protocols
+The Rootstock token at `0x779Ded0c9e1022225f8E0630b35a9b54bE713736`. It has 6 decimals. This protocol pairs it with idle and LayerBank. The address is the Rootstock token, not a BitChill deployment.
 
-### Rootstock (RSK)
-An EVM-compatible Bitcoin sidechain. BitChill is deployed here, benefiting from Bitcoin's security via merge-mining.
+### Idle route
+
+The handler holds the stablecoin. The balance earns no lending yield.
+
+## Venues
+
+### LayerBank
+
+A lending venue for DOC, USDRIF, and USDT0 in this protocol.
 
 ### Sovryn
-A DeFi platform on Rootstock with lending, trading, and margin features. BitChill integrates with its lending pools.
 
-### Money on Chain (MoC)
-The protocol behind DOC. BitChill's DOC handlers redeem DOC for rBTC through MoC.
+A lending venue for DOC in this protocol.
 
-### Tropykus (legacy)
-A Compound-style lending protocol on Rootstock. BitChill integrated with it for DOC and USDRIF yield generation until it sunset in mid 2026.
+### Money on Chain
 
-### Uniswap V3
-A DEX protocol. BitChill's USDRIF handlers used Uniswap V3 pools on Rootstock for swapping until Tropykus' sunset in mid 2026.
+The redemption venue for a DOC purchase.
 
-## Technical Terms
+### Uniswap
 
-### Schedule ID
-A unique `bytes32` identifier for each schedule. Used alongside the schedule index for validation.
+The swap venue for a USDRIF or USDT0 purchase.
 
-### Lending Protocol Index
-A numeric identifier mapping to lending protocols used by handlers: 0 = none, 1 = Tropykus, 2 = Sovryn.
+### Rootstock
 
-### SWAPPER_ROLE
-The access control role that permits calling purchase functions. Assigned to the BitChill automated swapper infrastructure.
+The chain for this protocol. Chain ID 30 is mainnet. The protocol contracts are not deployed.
 
-### APY (Annual Percentage Yield)
-The annualized return rate from lending protocols. Shown as a percentage.
+### Tropykus
 
-### Interest (Accrued)
-The difference between your current lending-backed value and your original principal. Withdrawable separately from your schedule balance.
-
-### Pull Pattern
-A design pattern where users must actively withdraw their funds rather than having them automatically sent. BitChill uses this for rBTC withdrawals.
+Tropykus is not a route in this protocol.
