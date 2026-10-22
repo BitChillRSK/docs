@@ -75,16 +75,58 @@ struct Batch {
     address token;
     uint256 routeIndex;
     uint256 minRbtcOut;
+    uint256 quotedStablecoinIn;
 }
 
-function batchBuyRbtc(Batch calldata batch) external;
-function batchBuyRbtcAcrossHandlers(Batch[] calldata batches) external;
+function batchBuyRbtc(Batch calldata batch) external;                   // selector 0xe34eeaa8
+function batchBuyRbtcAcrossHandlers(Batch[] calldata batches) external; // selector 0xaaef8304
 function activateProtectedPurchaseWindow() external;
 ```
 
 Only an allowlisted swapper can call these. A paused schedule in a batch reverts that batch. In a multi-handler call, one failed batch reverts every handler in the call.
 
-The protected window lasts five blocks. During it, the contract refuses amount edits, period edits, pause edits, deletes, principal withdrawals, and interest withdrawals. An rBTC claim stays open.
+The ABI type of `Batch` is `(uint64[],address,uint256,uint256,uint256)`. `quotedStablecoinIn` comes after `minRbtcOut`. An encoder that still uses a four-field tuple gets a different selector, and its call fails.
+
+The manager reads the buyer and the gross purchase amount of each row from storage. It then calls the handler with `batchBuyRbtc(address[],uint64[],uint256[],uint256,uint256)` (selector `0x3f412b64`). Only the manager can call that handler function.
+
+The protected window lasts five blocks. During it, the contract refuses amount edits, period edits, pause edits, deletes, principal withdrawals, and interest withdrawals. An rBTC claim stays open. A deposit and a new schedule stay open.
+
+## Purchase minimum
+
+Each `Batch` carries one quoted pair: the input of the quote and the minimum output for that input.
+
+- `quotedStablecoinIn` is the gross stablecoin input that the quote used, in the token's base units. It is normally the sum of the gross purchase amounts of the rows. USDT0 uses 6 decimals. DOC and USDRIF use 18 decimals. This value does not change a schedule debit.
+- `minRbtcOut` is the gross minimum output for that input, in wei. Gross means before the BitChill purchase fee. On a Uniswap route the output is WRBTC. On the Money on Chain route the output is native rBTC.
+- The handler first pulls the stablecoin of the rows. The actual input can differ from the quoted input, for example after lending rounding or a short lending row.
+- The handler then scales the minimum to the actual input and rounds up: `ceil(minRbtcOut × actualInput / quotedStablecoinIn)`.
+- The handler measures the gross output it received. If that output is below the scaled minimum, the purchase reverts with `PurchaseRbtc__BelowSwapperMinimum(received, scaledMinimum)`. Every schedule debit of the batch reverts with it.
+- A zero `minRbtcOut` disables this caller check. A positive `minRbtcOut` with a zero `quotedStablecoinIn` reverts with `PurchaseRbtc__ZeroQuotedStablecoinInput()` (selector `0x4e339109`).
+- The purchase fee is taken after this check, from the measured output. Buyers receive buyer-net rBTC.
+
+Each venue adds its own check:
+
+| Venue | Check in the handler |
+| --- | --- |
+| Uniswap (USDRIF, USDT0) | The router gets the higher of the scaled minimum and an oracle floor. The handler also requires the measured WRBTC to reach the oracle floor. Otherwise it reverts with `PurchaseUniswap__BelowOracleFloor(received, floor)` (selector `0x0f486c85`). |
+| Money on Chain (DOC) | The handler passes no minimum to Money on Chain and has no oracle floor. The scaled caller minimum is the only output check. |
+
+## BitChill swapper behaviour
+
+The BitChill swapper is operated software. It is not a contract. This section describes its relaunch behaviour at a high level. Its operator values are not published here.
+
+- It buys only for the six launch pairs. It does not buy a schedule on route index 2.
+- It accepts only the launch swap paths: USDRIF → USDT0 (0.05% pool) → WRBTC (0.30% pool), and USDT0 → WRBTC (0.30% pool). Before a quote, it reads the active swap path of each handler on chain. A different path omits that handler's group.
+- Each handler group keeps one quoted pair of `quotedStablecoinIn` and `minRbtcOut` through the simulation, the send, and a retry.
+- USDRIF and USDT0 groups use Uniswap quotes. The groups of one transaction are quoted in transaction order, because a later group trades after the earlier groups on a shared pool.
+- A DOC group always has a positive minimum. The swapper computes the expected native rBTC from Money on Chain redemption pricing, after Money on Chain fees and before the BitChill fee. It then subtracts a configured tolerance. If that quote fails, the swapper omits the DOC group. It never sends a DOC group with a zero minimum. Other groups can still go.
+- Before a send that contains DOC work, the swapper reads the Money on Chain gas price cap and the free DOC capacity. A DOC group that does not fit waits for a later run.
+- It omits a Uniswap group whose quote is too far below the handler's oracle reference, or whose price impact is too high. It defers a row or a batch above a size limit. These limits are required operator settings with no default. The swapper does not start without them. Their values are open operator decisions.
+- On a lending route, a row whose user has no share value left is excluded after a decoded simulation revert. The rest of the transaction is simulated again.
+- It buys each schedule at most once in one run.
+- It simulates the exact transaction before the send. A simulation shows only success or failure. It is not a measured price.
+- It does not open the protected purchase window.
+
+A group or a row that the swapper omits stays due. If it waits past its next due day, a later purchase consumes only the newest due slot. There is no catch-up.
 
 ## Owner settings on the manager
 
