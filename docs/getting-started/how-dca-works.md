@@ -27,7 +27,7 @@ The cadence is a grid of UTC midnights. The cadence anchor is the UTC midnight o
 
 The first purchase is eligible on the creation UTC day once the swapper submits it. When it succeeds, it sets the anchor to the UTC midnight of that day. A later purchase becomes eligible at 00:00 UTC on the due day. The contract does not reserve a minute inside that day. If several due days pass before a purchase succeeds, the purchase consumes the newest due slot and skips the missed slots. There is no catch-up.
 
-A due day is not a completed purchase. The swapper must submit the transaction. The schedule must have enough principal for one purchase. A schedule pause blocks that purchase. Liquidity, a price check, and a successful transaction are also required.
+A due day is not a completed purchase. The swapper must submit the transaction. The schedule must have enough principal for one purchase. A schedule pause blocks that purchase. Liquidity, a price check, and a successful transaction are also required. The swapper can also leave a due purchase for a later run, for example when its quote fails or a size limit applies. If it waits past the next due day, the later purchase consumes only the newest due slot.
 
 ## One purchase
 

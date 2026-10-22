@@ -34,6 +34,14 @@ The stablecoin amount the schedule spends on one purchase. The fee is not subtra
 
 The rBTC credited to the buyer after the purchase fee is taken from the measured rBTC output.
 
+### Quoted stablecoin input
+
+The `quotedStablecoinIn` field of a purchase batch. It is the gross stablecoin input that the swapper's quote used, in token base units.
+
+### Purchase minimum
+
+The `minRbtcOut` field of a purchase batch. It is the gross output minimum, before the purchase fee, for the quoted stablecoin input. The handler scales it to the actual input and rounds up.
+
 ### Route
 
 The idle or lending destination for one stablecoin. Index 0 is idle. Index 1 is LayerBank. Index 2 is not registered at launch. The contract constants name it for Sovryn.
