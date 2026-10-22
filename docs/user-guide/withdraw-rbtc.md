@@ -21,7 +21,7 @@ You can read the balance for a token and route. You claim with `withdrawAllAccum
 
 1. You send the claim from your account.
 2. Each handler in the call pays your accumulated rBTC for its pair.
-3. On a Uniswap route, wrapped rBTC from the swap is unwrapped to native rBTC for the payment.
+3. A DOC handler pays the native rBTC that Money on Chain returned. A DEX handler (USDRIF or USDT0, not enabled at the initial launch) unwraps the wrapped rBTC from the swap and pays native rBTC.
 4. Your schedules keep their principal and their cadence.
 
 A claim does not close a schedule. A delete does not claim rBTC. Run the claim when you want the rBTC in your account.

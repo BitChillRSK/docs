@@ -12,8 +12,8 @@ The contracts that run this schedule are not deployed.
 
 A schedule stores these facts:
 
-- The stablecoin: DOC, USDRIF, or USDT0.
-- The route: idle or LayerBank. All three stablecoins have both routes at launch.
+- The stablecoin. The protocol implements DOC, USDRIF, and USDT0. The initial launch enables DOC only.
+- The route: idle or LayerBank. At the initial launch, DOC has both routes.
 - The deposit, which is principal the schedule can still spend or withdraw.
 - The purchase amount, in that stablecoin. This amount is the gross cost of one purchase.
 - The cadence, as a whole number of UTC days.
@@ -27,13 +27,13 @@ The cadence is a grid of UTC midnights. The cadence anchor is the UTC midnight o
 
 The first purchase is eligible on the creation UTC day once the swapper submits it. When it succeeds, it sets the anchor to the UTC midnight of that day. A later purchase becomes eligible at 00:00 UTC on the due day. The contract does not reserve a minute inside that day. If several due days pass before a purchase succeeds, the purchase consumes the newest due slot and skips the missed slots. There is no catch-up.
 
-A due day is not a completed purchase. The swapper must submit the transaction. The schedule must have enough principal for one purchase. A schedule pause blocks that purchase. Liquidity, a price check, and a successful transaction are also required. The swapper can also leave a due purchase for a later run, for example when its quote fails or a size limit applies. If it waits past the next due day, the later purchase consumes only the newest due slot.
+A due day is not a completed purchase. The swapper must submit the transaction. The schedule must have enough principal for one purchase. A schedule pause blocks that purchase. Liquidity, a price check, and a successful transaction are also required. The swapper can also leave a due purchase for a later run, for example when its quote fails, when Money on Chain cannot redeem the DOC amount yet, or when a configured size limit applies. If it waits past the next due day, the later purchase consumes only the newest due slot.
 
 ## One purchase
 
 1. The swapper names the stablecoin, the route, and the schedule id.
 2. The schedule spends the gross purchase amount in stablecoin.
-3. The purchase venue receives that stablecoin. DOC purchases redeem through Money on Chain. USDRIF and USDT0 purchases swap through Uniswap.
+3. The purchase venue receives that stablecoin. DOC purchases redeem through Money on Chain. In the protocol, USDRIF and USDT0 purchases swap through Uniswap V3. The initial launch does not enable those two stablecoins.
 4. The purchase fee is a share of the measured rBTC output. The fee is not taken from the stablecoin before the purchase.
 5. The handler credits you with the buyer-net rBTC.
 
@@ -50,7 +50,7 @@ Purchased rBTC stays in the handler until you claim it. One handler serves one s
 | Idle | The handler holds it. It earns no lending yield. |
 | LayerBank | The handler can lend it. |
 
-Sovryn is not a launch route. See [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
+The initial launch supports DOC only, on idle and LayerBank. Sovryn is not a launch route. See [Initial launch](/docs/getting-started/supported-assets#initial-launch-doc-only) and [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
 
 ## A principal example
 

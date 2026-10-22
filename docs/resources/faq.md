@@ -12,15 +12,29 @@ BitChill is a dollar-cost averaging protocol on Rootstock. You deposit a stablec
 
 The contracts in these pages are not deployed.
 
-### Which stablecoins and routes does this protocol use?
+### Which stablecoins and routes does the initial launch support?
 
-| Stablecoin | Decimals | Routes at launch |
-| --- | --- | --- |
-| DOC | 18 | Idle, LayerBank |
-| USDRIF | 18 | Idle, LayerBank |
-| USDT0 | 6 | Idle, LayerBank |
+The initial launch supports DOC only, on the idle route (index 0) and the LayerBank route (index 1). That is two stablecoin and route pairs. The idle route earns no lending yield. Sovryn is not a launch route. Tropykus is not a route.
 
-That is six stablecoin and route pairs. Sovryn is not a launch route. Tropykus is not a route. The idle route earns no lending yield. The route table is on the [supported tokens page](/docs/getting-started/supported-assets).
+### Does the protocol support other stablecoins?
+
+Yes. The protocol implements three stablecoins:
+
+| Stablecoin | Decimals | Purchase venue | Initial launch |
+| --- | --- | --- | --- |
+| DOC | 18 | Money on Chain | Idle and LayerBank |
+| USDRIF | 18 | Uniswap V3 | Implemented. Not enabled. |
+| USDT0 | 6 | Uniswap V3 | Implemented. Not enabled. |
+
+The USDRIF and USDT0 DEX handlers are implemented and tested. The route table is on the [supported tokens page](/docs/getting-started/supported-assets#route-pairs).
+
+### Why does the initial launch support DOC only?
+
+A USDRIF or USDT0 purchase swaps on Rootstock Uniswap V3 pools. The swapper's execution-quality rules check each DEX quote against an oracle reference and against the pool price before the transaction. Those rules need pool depth. Rootstock DEX liquidity on these paths is not yet deep enough for them. A DOC purchase redeems at Money on Chain and does not trade against a pool.
+
+### Can USDRIF and USDT0 be enabled later?
+
+Yes. A reviewed configuration can enable them when Rootstock DEX liquidity is deep enough for the execution-quality rules. No contract code change is needed. The owner deploys and assigns the DEX handlers, and the operators configure the offchain services. See [Enabling USDRIF and USDT0](/docs/getting-started/supported-assets#enabling-usdrif-and-usdt0).
 
 ### Is this version audited?
 
