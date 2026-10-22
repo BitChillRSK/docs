@@ -13,7 +13,7 @@ The contracts are not deployed. An accrued-interest figure is not available. The
 | Route | Waiting stablecoin |
 | --- | --- |
 | Idle | Held by the handler. No lending yield. |
-| LayerBank | Can be lent. DOC, USDRIF, and USDT0 have this route. |
+| LayerBank | Can be lent. At the initial launch, DOC has this route. The protocol also has LayerBank handlers for USDRIF and USDT0, which the initial launch does not enable. |
 
 Sovryn is not a launch route. Tropykus is not a route in this protocol.
 

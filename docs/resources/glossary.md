@@ -46,6 +46,14 @@ The `minRbtcOut` field of a purchase batch. It is the gross output minimum, befo
 
 The idle or lending destination for one stablecoin. Index 0 is idle. Index 1 is LayerBank. Index 2 is not registered at launch. The contract constants name it for Sovryn.
 
+### Initial launch
+
+The first deployment configuration. It supports DOC only, on idle (index 0) and LayerBank (index 1). The USDRIF and USDT0 DEX handlers are implemented and tested, and the initial launch does not enable them.
+
+### Active pair
+
+A stablecoin and route that has a handler in the registry. `getHandler(token, routeIndex)` returns a nonzero address for it. The deployment decides the active pairs.
+
 ### Schedule pause
 
 A flag the owner of the schedule sets. It blocks purchases for that schedule.
@@ -72,6 +80,18 @@ The registry of routes, handlers, the swapper allowlist, and deposit pauses.
 
 The contract that holds stablecoin and rBTC for one stablecoin and one route.
 
+### DEX handler
+
+A handler that buys through Uniswap V3. The protocol has DEX handlers for USDRIF and USDT0. The initial launch does not enable them.
+
+### Oracle floor
+
+The lowest output that a DEX handler accepts from a swap. It is a configured percentage of the output that the Money on Chain BTC/USD oracle implies.
+
+### Execution-quality rules
+
+The BitChill swapper's checks on a DEX quote: a tolerance against the handler's oracle reference and a price-impact limit against the pool price before the transaction. They apply only to a DEX token.
+
 ### Swapper
 
 An allowlisted account that can submit a purchase batch and open the protected window.
@@ -84,15 +104,15 @@ The native asset of Rootstock. Backing and an exchange price are different facts
 
 ### DOC
 
-A Money on Chain stablecoin with 18 decimals. This protocol pairs it with idle and LayerBank.
+A Money on Chain stablecoin with 18 decimals. The stablecoin of the initial launch, on idle and LayerBank.
 
 ### USDRIF
 
-A RIF stablecoin with 18 decimals. This protocol pairs it with idle and LayerBank.
+A RIF stablecoin with 18 decimals. The protocol has idle and LayerBank DEX handlers for it. The initial launch does not enable them.
 
 ### USDT0
 
-The Rootstock token at `0x779Ded0c9e1022225f8E0630b35a9b54bE713736`. It has 6 decimals. This protocol pairs it with idle and LayerBank. The address is the Rootstock token, not a BitChill deployment.
+The Rootstock token at `0x779Ded0c9e1022225f8E0630b35a9b54bE713736`. It has 6 decimals. The protocol has idle and LayerBank DEX handlers for it. The initial launch does not enable them. The address is the Rootstock token, not a BitChill deployment.
 
 ### Idle route
 
@@ -102,11 +122,11 @@ The handler holds the stablecoin. The balance earns no lending yield.
 
 ### LayerBank
 
-A lending venue for DOC, USDRIF, and USDT0 in this protocol.
+The lending venue of route index 1. The initial launch uses it for DOC. The protocol also has LayerBank handlers for USDRIF and USDT0.
 
 ### Sovryn
 
-Not a launch route. The contract source keeps a Sovryn DOC handler for possible future support. An earlier BitChill deployment used Sovryn. That history is not part of this protocol.
+Not a launch route. The contract source keeps a Sovryn lending adapter and a Sovryn DOC handler for possible future support. An earlier BitChill deployment used Sovryn. That history is not part of this protocol.
 
 ### Money on Chain
 
@@ -114,7 +134,7 @@ The redemption venue for a DOC purchase.
 
 ### Uniswap
 
-The swap venue for a USDRIF or USDT0 purchase.
+The Uniswap V3 swap venue of the DEX handlers, for a USDRIF or USDT0 purchase. The initial launch does not use it.
 
 ### Rootstock
 

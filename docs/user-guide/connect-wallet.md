@@ -34,9 +34,11 @@ A Rootstock wallet can be any wallet that supports chain ID 30. Common choices a
 | Asset | Use |
 | --- | --- |
 | rBTC | Gas for a transaction you send |
-| DOC, USDRIF, or USDT0 | The stablecoin a schedule spends |
+| DOC | The stablecoin a schedule spends at the initial launch |
 
 rBTC is the native asset. Hold a balance for gas. A bridge or an exchange does not promise a cost-free 1:1 conversion.
+
+The protocol also implements USDRIF and USDT0. The initial launch does not enable them. See [Initial launch](/docs/getting-started/supported-assets#initial-launch-doc-only).
 
 ## If the wallet fails
 

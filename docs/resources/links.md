@@ -45,10 +45,10 @@ A PowPeg transfer is not a cost-free 1:1 conversion. Backing and an exchange pri
 | --- | --- |
 | Money on Chain | DOC purchases, and the DOC stablecoin. [moneyonchain.com](https://moneyonchain.com/) |
 | RIF on Chain | USDRIF. [rif.moneyonchain.com](https://rif.moneyonchain.com/) |
-| Uniswap | USDRIF and USDT0 purchases. [uniswap.org](https://uniswap.org/) |
-| LayerBank | Lending route for DOC, USDRIF, and USDT0 |
+| Uniswap | USDRIF and USDT0 purchases through the DEX handlers. The initial launch does not enable them. [uniswap.org](https://uniswap.org/) |
+| LayerBank | Lending route. DOC at the initial launch. [app.layerbank.finance](https://app.layerbank.finance/bank?chain=rootstock&network=rootstock) |
 
-Sovryn is not a launch venue. Tropykus is not a venue in this protocol. The idle route is not a lending venue.
+The initial launch supports DOC only, on idle and LayerBank. Sovryn is not a launch venue. Tropykus is not a venue in this protocol. The idle route is not a lending venue.
 
 ## Wallets
 

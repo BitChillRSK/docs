@@ -6,6 +6,8 @@ sidebar_position: 2
 
 A schedule spends one stablecoin on one route and buys rBTC on a UTC-day cadence. The contracts that accept this call are not deployed.
 
+At the initial launch, a schedule uses DOC on the idle route (index 0) or the LayerBank route (index 1). The protocol also implements USDRIF and USDT0, which the initial launch does not enable. See [Initial launch](/docs/getting-started/supported-assets#initial-launch-doc-only).
+
 ## Call
 
 `createDcaSchedule` takes:
