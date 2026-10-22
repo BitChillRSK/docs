@@ -82,13 +82,37 @@ From the manager:
 - `DcaManager__PurchasePeriodUpdated`
 - `DcaManager__SchedulePauseSet`
 - `DcaManager__DcaScheduleDeleted`
+- `DcaManager__ScheduleToppedUpFromInterest`
 - `DcaManager__ProtectedPurchaseWindowActivated`
 
 The created, deleted, and balance events include the token and the decimal schedule id. The pause event includes the user and the schedule id.
 
+From a handler:
+
+- `TokenHandler__TokenDeposited` and `TokenHandler__TokenWithdrawn`
+- `PurchaseRbtc__RbtcBought`, `PurchaseRbtc__SuccessfulRbtcBatchPurchase`, and `PurchaseFees__FeeCredited`
+- `PurchaseRbtc__rBtcWithdrawn`
+- On a LayerBank handler: `LendingHandler__UserSharesUpdated`, `LendingHandler__SharesRedeemed`, `LendingHandler__WithdrawalAmountAdjusted`, and `LendingHandler__InterestWithdrawn`
+
+### Event order
+
+The order of logs inside one transaction matters when an indexer keeps the last balance event of a schedule.
+
+| Call | Order of logs |
+| --- | --- |
+| `depositToken` | The manager stores the new balance and emits `DcaManager__TokenBalanceUpdated`. Then the handler pulls the deposit and emits its events. |
+| `withdrawToken`, `withdrawTokenAndInterest` | The manager stores the debit and emits `DcaManager__TokenBalanceUpdated`. Then the handler pays out and emits its events. |
+| `createDcaSchedule` | The handler pulls the deposit and emits its events. Then the manager emits `DcaManager__DcaScheduleCreated`. |
+| `deleteDcaSchedule` | The handler pays out and emits its events. Then the manager emits `DcaManager__DcaScheduleDeleted`. |
+| A purchase | The manager emits `DcaManager__TokenBalanceUpdated` for each row. Then the handler buys and emits its purchase events. |
+
+A token or a lending market can call back during a handler call. If that callback runs a purchase, the purchase logs its balance event after the balance event of the user call. The last `DcaManager__TokenBalanceUpdated` of a schedule in a transaction is therefore its stored balance. Do not assume that a manager balance event comes after the handler events of the same call.
+
+A LayerBank principal withdrawal that redeems nothing emits `LendingHandler__WithdrawalAmountAdjusted(user, requested, 0)`. It emits no `TokenHandler__TokenWithdrawn`. This happens when the user's shares are worth zero. The manager still debits the requested principal.
+
 ## Checks that revert
 
-Examples:
+User calls, examples:
 
 - `DcaManager__InexistentSchedule`
 - `DcaManager__NotScheduleOwner`
@@ -101,6 +125,17 @@ Examples:
 - `DcaManager__ScheduleBalanceNotEnoughForPurchase`
 - `DcaManager__UserMutationsLocked`
 - `DcaManager__TokenNotAccepted`
+- `LendingHandler__DepositConsumptionMismatch(intendedDecrease, balanceBefore, balanceAfter)` (selector `0x64ec060f`). A deposit or a create on a LayerBank route reverts when the lending market does not take exactly the deposit. The revert keeps the user's tokens in the user's account.
+
+Purchase calls, examples:
+
+- `PurchaseRbtc__BelowSwapperMinimum(received, scaledMinimum)`
+- `PurchaseRbtc__ZeroQuotedStablecoinInput()` (selector `0x4e339109`)
+- `PurchaseUniswap__BelowOracleFloor(received, floor)` (selector `0x0f486c85`)
+- `PurchaseRbtc__InputAmountNotFullySpent`
+- `LendingHandler__ZeroShareValue`
+
+The second argument of `PurchaseRbtc__BelowSwapperMinimum` is the minimum after scaling to the actual input. It is not the `minRbtcOut` value of the batch. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum).
 
 ## Exit rules for a client
 
