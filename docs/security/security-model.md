@@ -44,7 +44,7 @@ The window stops a user from changing the purchased state after the swapper has 
 | Owner | Owner-only configuration |
 | Handler entry | The call must come from the manager |
 
-The manager uses a reentrancy guard on the external calls that change balances, edit schedules, run purchases, and pay claims.
+The manager uses a reentrancy guard on the user calls that change balances, edit schedules, and pay claims. The purchase calls are swapper-only and do not take that guard. A token or a lending market can therefore run a purchase from a callback during a user call. For that reason, a deposit or a withdrawal stores and logs the new balance before the handler call. See [Event order](/docs/contracts/integration#event-order).
 
 ## Purchase limits
 

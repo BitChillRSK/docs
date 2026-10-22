@@ -68,7 +68,7 @@ A USDRIF purchase uses USDT0 as the intermediate token. It does not use the lega
 
 ### Sovryn
 
-The contract source keeps a Sovryn DOC handler, and the contract constants name index 2 for Sovryn. The launch deployment does not register index 2 and does not assign a Sovryn handler. A call with route index 2 finds no handler and reverts. A Sovryn route can only come from a future reviewed deployment. These pages describe it only as that possible future support.
+The contract source keeps a Sovryn DOC handler, and the contract constants name index 2 for Sovryn. The launch deployment does not register index 2 and does not assign a Sovryn handler. A create with route index 2 finds no handler and reverts. No schedule can exist on that route. A claim list or an interest list skips a pair with index 2. A Sovryn route can only come from a future reviewed deployment. These pages describe it only as that possible future support.
 
 ### Earlier BitChill deployment (historical)
 
