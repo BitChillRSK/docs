@@ -59,11 +59,18 @@ Generic support for another route index is possible in a future reviewed deploym
 ## Claim rBTC
 
 ```solidity
-function withdrawAccumulatedRbtc(address token, uint256 routeIndex) external;
 function withdrawAllAccumulatedRbtc(address[] calldata tokens, uint256[] calldata routeIndexes) external;
 ```
 
-The two arrays are pairs. A zero handler or a zero balance is skipped in the batch call.
+This is the only rBTC claim call on the manager. The manager has no single-pair claim function. The two arrays are positional pairs: `tokens[i]` is claimed only from `routeIndexes[i]`.
+
+- One pair: pass one-element arrays, for example `([DOC], [1])` for DOC on LayerBank.
+- Several pairs: pass one entry for each pair, for example `([DOC, USDT0], [0, 1])`.
+- The arrays must have the same length and must not be empty. Otherwise the call reverts with `DcaManager__ArraysLengthMismatch` or `DcaManager__EmptyWithdrawalArrays`.
+- A pair with no handler or with a zero balance is skipped.
+- The caller must accept native rBTC with empty calldata. If one payment fails, the whole call reverts and every accumulated balance stays in place.
+
+Read the balance of one pair first with `getAccumulatedRbtcBalance(user, token, routeIndex)` if you want to send only pairs that have rBTC.
 
 ## Events to follow
 

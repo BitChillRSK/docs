@@ -10,16 +10,23 @@ A purchase credits buyer-net rBTC to you inside the handler. The rBTC stays ther
 
 The balance is per account, per stablecoin, and per route. It is not per schedule. Two DOC schedules on LayerBank add rBTC in the DOC LayerBank handler. A DOC idle schedule uses a different handler.
 
-You can read the balance for a token and route. You claim it with `withdrawAccumulatedRbtc`. You can claim several pairs in one call with `withdrawAllAccumulatedRbtc`. An empty or unassigned pair in that batch is skipped.
+You can read the balance for a token and route. You claim with `withdrawAllAccumulatedRbtc`. That call takes a list of stablecoins and a list of route indexes. Entry 1 of each list is one pair, entry 2 is the next pair, and so on.
+
+- To claim one pair, send one stablecoin and one route, for example DOC and route 1 (LayerBank).
+- To claim several pairs in one call, send one stablecoin and one route for each pair.
+- A pair with no handler or with a zero balance is skipped.
+- The two lists must have the same length and must not be empty.
 
 ## What a claim does
 
 1. You send the claim from your account.
-2. The handler pays your accumulated rBTC.
+2. Each handler in the call pays your accumulated rBTC for its pair.
 3. On a Uniswap route, wrapped rBTC from the swap is unwrapped to native rBTC for the payment.
 4. Your schedules keep their principal and their cadence.
 
 A claim does not close a schedule. A delete does not claim rBTC. Run the claim when you want the rBTC in your account.
+
+The account must accept a plain native rBTC payment. An ordinary wallet account does. A smart-contract wallet must also accept it. If one payment in the call fails, the whole call reverts and your rBTC stays in the handlers.
 
 A schedule pause does not block the claim. A deposit pause does not block the claim. The protected purchase window does not block the claim. Website data does not block the claim.
 

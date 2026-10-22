@@ -26,9 +26,10 @@ function withdrawToken(address token, uint64 scheduleId, uint256 withdrawalAmoun
 function withdrawTokenAndInterest(address token, uint64 scheduleId, uint256 withdrawalAmount) external;
 function topUpFromInterest(address token, uint64 scheduleId, uint256 amount) external;
 function withdrawAllAccumulatedInterest(address[] calldata tokens, uint256[] calldata routeIndexes) external;
-function withdrawAccumulatedRbtc(address token, uint256 routeIndex) external;
 function withdrawAllAccumulatedRbtc(address[] calldata tokens, uint256[] calldata routeIndexes) external;
 ```
+
+`withdrawAllAccumulatedRbtc` is the only rBTC claim call. Its two arrays are positional pairs of token and route. For one pair, pass one-element arrays. For several pairs, pass one entry for each pair. A pair with no handler or with a zero balance is skipped. Empty arrays or arrays of different length revert. The [integration notes](/docs/contracts/integration#claim-rbtc) give examples.
 
 `withdrawTokenAndInterest` and `topUpFromInterest` are for a lending route. An idle schedule reverts those calls. `topUpFromInterest` adds lending interest to one schedule's principal. It does not move tokens out. A delete returns principal and does not claim interest or rBTC. An accrued-interest figure is not available on this site.
 
