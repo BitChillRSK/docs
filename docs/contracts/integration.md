@@ -56,7 +56,7 @@ function createDcaSchedule(
 
 Route indexes are 0 for idle and 1 for LayerBank. The initial launch has two active pairs: DOC on index 0 and DOC on index 1. The protocol also implements USDRIF and USDT0 on both indexes. The initial launch does not assign those handlers. A create on a pair with no handler reverts, so no schedule can exist on it. Index 2 is not registered at launch. A DOC create with index 2 reverts with `DcaManager__TokenNotAccepted`. `withdrawAllAccumulatedRbtc` and `withdrawAllAccumulatedInterest` skip a pair with no handler, including a pair with index 2. Use a pair from the [route table](/docs/getting-started/supported-assets#route-pairs). Tropykus is not a route.
 
-Take the active pairs from the deployment, not from a fixed list. Read the handler with `getHandler(token, routeIndex)` on the registry. A zero address means that pair has no handler. A later reviewed configuration can assign a catalog pair on the same registry, for example a USDRIF or USDT0 DEX handler or a route 2 handler. An integration that reads the registry needs no code change for it.
+Take the active pairs from the deployment, not from a fixed list. Read the handler with `getHandler(token, routeIndex)` on the registry. A zero address means that pair has no handler. A later reviewed configuration can assign a catalog pair on the same registry, for example a USDRIF or USDT0 DEX handler or a route 2 handler. Route 2 is not registered at launch, so the owner first calls `registerRoute(2, true)`. Without it, `assignHandler` reverts with `OperationsAdmin__RouteNotRegistered`. An integration that reads the registry needs no code change for it.
 
 ## Claim rBTC
 

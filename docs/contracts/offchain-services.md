@@ -103,7 +103,7 @@ The monitoring service turns contract logs into facts for the data API.
 The data API stores the facts that the monitoring service posts. It does not read the chain. The contracts stay the source of truth.
 
 - It serves one deployment from a deployment manifest. The manifest gives the deployment id, the chain id, the manager, the registry, and each active stablecoin and route with its handler. The initial launch manifest lists DOC idle and DOC LayerBank.
-- A seed step registers the manifest rows once. A later pair is appended to the same deployment. A changed or removed registered row is refused.
+- A seed step registers the manifest rows. A later pair is appended to the same deployment. The values that identify a registered deployment stay fixed: the addresses, the token decimals, the handler of each route, and the route name and lending flag. A change to one of them, or a removed pair, is refused. The token minimum follows the configured manifest.
 - Each fact must come from the right contract: a schedule fact from the manager, a deposit-pause fact from the registry, and a purchase, fee, yield, or cash fact from a handler in the manifest.
 - Read routes are under `/api/v2/deployments/:deploymentId/`. They cover the deployment and pair metadata with the deposit-pause flag, schedules and due schedules, purchases, purchase batches, fee credits, interest and cash flows, and reporting totals.
 - The monitoring routes for facts, rollbacks, the cursor, and the block-hash checkpoints need a service token.

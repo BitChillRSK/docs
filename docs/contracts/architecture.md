@@ -6,7 +6,7 @@ sidebar_position: 1
 
 BitChill uses one manager, one registry, and one handler for each stablecoin and route. The contracts are not deployed.
 
-This page describes every contract in the protocol source. The initial launch assigns two of the handlers: DOC idle and DOC LayerBank. See [Initial launch](/docs/getting-started/supported-assets#initial-launch-doc-only).
+This page describes every production contract in the protocol source. The initial launch assigns two of the handlers: DOC idle and DOC LayerBank. See [Initial launch](/docs/getting-started/supported-assets#initial-launch-doc-only).
 
 ```mermaid
 flowchart TB
@@ -49,7 +49,7 @@ The owner assigns a handler once for each pair. `assignHandler(token, routeIndex
 
 The owner can pause new deposits for one assigned pair. The owner keeps the swapper allowlist.
 
-A pair with no handler is not active. A create on it reverts. `getHandler(token, routeIndex)` returns the zero address for it. The deployment decides the active pairs, not the code: a later pair on the same registry needs a handler and an assignment, not a new manager.
+A pair with no handler is not active. A create on it reverts. `getHandler(token, routeIndex)` returns the zero address for it. The deployment decides the active pairs, not the code: a later pair on the same registry needs a handler and an assignment, not a new manager. A pair on a route that is not registered, such as route 2 at launch, first needs `registerRoute(2, true)`.
 
 ## Handlers
 
@@ -68,7 +68,7 @@ Each handler contract combines one holding base with one purchase venue:
 | Money on Chain | The handler redeems DOC at Money on Chain and measures the native rBTC it received. |
 | Uniswap V3 | The handler swaps on its active path to WRBTC and measures the WRBTC it received. It unwraps WRBTC when it pays a claim. |
 
-The protocol source has these handler contracts:
+The protocol source has these production handler contracts:
 
 | Contract | Stablecoin | Route | Holding base | Purchase venue | Initial launch |
 | --- | --- | --- | --- | --- | --- |
@@ -79,7 +79,7 @@ The protocol source has these handler contracts:
 | `SovrynDocHandlerMoc` | DOC | 2 | Sovryn lending | Money on Chain | Not assigned. Route 2 is not registered. |
 | `SovrynHandlerDex` | A stablecoin that Sovryn lends | 2 | Sovryn lending | Uniswap V3 | Not assigned. Route 2 is not registered. |
 
-The DEX handlers are implemented and tested. The initial launch does not assign them. See [Enabling USDRIF and USDT0](/docs/getting-started/supported-assets#enabling-usdrif-and-usdt0). Tropykus is not a handler route in this protocol. An idle handler does not lend. See [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
+The DEX handlers are implemented and tested. The initial launch does not assign them. See [Enabling USDRIF and USDT0](/docs/getting-started/supported-assets#enabling-usdrif-and-usdt0). Tropykus is not a handler route in this protocol. The source keeps a test-only Tropykus adapter in `src/tropykus-legacy`. Only local and fork test lanes build it, and no production deployment uses it. An idle handler does not lend. See [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
 
 ### Shared building blocks
 
@@ -92,6 +92,9 @@ The DEX handlers are implemented and tested. The initial launch does not assign 
 | `PurchaseFees` | The fee curve and the fee collector. |
 | `PurchaseMoc` | The Money on Chain venue. |
 | `PurchaseUniswap` | The Uniswap V3 venue, with the oracle floor and the path allowlist. |
+| `StablecoinSource` | The handler's immutable stablecoin and the batch-funding hook that the holding base implements. |
+| `DcaManagerAccessControl` | Restricts handler entry points to the manager set at construction. |
+| `BitChillOwnable` | The owner policy of the manager, the registry, and each handler: two-step ownership transfer and no renounce. |
 
 ## Who can call
 
