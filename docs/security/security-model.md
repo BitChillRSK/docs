@@ -66,10 +66,9 @@ A purchase or a lending route depends on systems outside these contracts:
 - Money on Chain, for a DOC purchase
 - Uniswap, for a USDRIF or USDT0 purchase
 - LayerBank, for a LayerBank route
-- Sovryn, for the DOC Sovryn route
 - Rootstock block production and gas
 
-Tropykus is not a route in this protocol. The idle route does not depend on a lending venue.
+Sovryn is not a launch route. Tropykus is not a route in this protocol. The idle route does not depend on a lending venue.
 
 A DEX purchase uses a price check and a minimum output. A Money on Chain redemption uses the Money on Chain price and can also face the batch minimum. A failed check reverts the purchase.
 

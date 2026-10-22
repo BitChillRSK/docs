@@ -13,7 +13,7 @@ The contracts that run this schedule are not deployed.
 A schedule stores these facts:
 
 - The stablecoin: DOC, USDRIF, or USDT0.
-- The route: idle, LayerBank, or Sovryn, for the pairs this protocol uses.
+- The route: idle or LayerBank. All three stablecoins have both routes at launch.
 - The deposit, which is principal the schedule can still spend or withdraw.
 - The purchase amount, in that stablecoin. This amount is the gross cost of one purchase.
 - The cadence, as a whole number of UTC days.
@@ -49,7 +49,8 @@ Purchased rBTC stays in the handler until you claim it. One handler serves one s
 | --- | --- |
 | Idle | The handler holds it. It earns no lending yield. |
 | LayerBank | The handler can lend it. |
-| Sovryn | The handler can lend it. Sovryn is a DOC route only. |
+
+Sovryn is not a launch route. See [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
 
 ## A principal example
 

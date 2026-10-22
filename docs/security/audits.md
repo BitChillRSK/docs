@@ -14,7 +14,7 @@ The 2025 Ivan Fitro reports cover earlier contract versions. They are not a manu
 
 ## Before deployment
 
-The deployment script can deploy the manager, the registry, and the seven handlers on Rootstock mainnet. That deployment waits for the planned audit. Until then, the address page has no protocol contract address.
+The deployment script can deploy the manager, the registry, and the six launch handlers on Rootstock mainnet. That deployment waits for the planned audit. Until then, the address page has no protocol contract address.
 
 ## Report a vulnerability
 
