@@ -148,3 +148,5 @@ The protected window can block an edit, a delete, a principal withdrawal, and an
 A delete returns principal. It does not claim interest, and it does not claim rBTC.
 
 Keep the exit calls available when your stored copy is missing or stale. Website data must not be required for a withdrawal, a delete, or an rBTC claim.
+
+The [offchain services page](/docs/contracts/offchain-services) describes how BitChill's own swapper, monitoring service, data API, and app follow these rules.

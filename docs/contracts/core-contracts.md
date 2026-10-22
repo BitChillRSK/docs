@@ -112,7 +112,7 @@ Each venue adds its own check:
 
 ## Money on Chain handler
 
-A DOC handler calls `redeemFreeDoc(amount)` on the Money on Chain proxy from its own account. It measures the native rBTC that its balance gained. It passes no minimum to Money on Chain. Money on Chain can redeem less than the amount when its free DOC is short. The handler then reverts the batch with `PurchaseRbtc__InputAmountNotFullySpent`, because the venue did not take the whole input. The BitChill swapper reads the free DOC capacity and the Money on Chain gas price cap before it sends DOC work.
+A DOC handler calls `redeemFreeDoc(amount)` on the Money on Chain proxy from its own account. It measures the native rBTC that its balance gained. It passes no minimum to Money on Chain. Money on Chain can redeem less than the amount when its free DOC is short. The handler then reverts the batch with `PurchaseRbtc__InputAmountNotFullySpent`, because the venue did not take the whole input. The BitChill swapper reads the free DOC capacity and the Money on Chain gas price cap before it sends DOC work. See [Offchain services](/docs/contracts/offchain-services#swapper).
 
 ## DEX handler settings
 
@@ -165,21 +165,7 @@ floor = stablecoinAmount × 10^(18 − stablecoinDecimals) × amountOutMinimumPe
 
 ## BitChill swapper behaviour
 
-The BitChill swapper is operated software. It is not a contract. This section describes its relaunch behaviour at a high level. Its operator values are not published here.
-
-- It buys only for the six launch pairs. It does not buy a schedule on route index 2.
-- It accepts only the launch swap paths: USDRIF → USDT0 (0.05% pool) → WRBTC (0.30% pool), and USDT0 → WRBTC (0.30% pool). Before a quote, it reads the active swap path of each handler on chain. A different path omits that handler's group.
-- Each handler group keeps `quotedStablecoinIn` and `minRbtcOut` together as one pair through the simulation, the send, and a retry. A stale DOC quote is quoted again once, and the new pair replaces the whole old pair. A stale Uniswap quote is not quoted again. That group is omitted.
-- USDRIF and USDT0 groups use Uniswap quotes. The groups of one transaction are quoted in transaction order, because a later group trades after the earlier groups on a shared pool.
-- A DOC group always has a positive minimum. The swapper computes the expected native rBTC from Money on Chain redemption pricing, after Money on Chain fees and before the BitChill fee. It then subtracts a configured tolerance. If that quote fails, the swapper omits the DOC group. It never sends a DOC group with a zero minimum. Other groups can still go.
-- Before a send that contains DOC work, the swapper reads the Money on Chain gas price cap and the free DOC capacity. A DOC group that does not fit waits for a later run.
-- It omits a Uniswap group whose quote is too far below the handler's oracle reference, or whose price impact is too high. It defers a row or a batch above a size limit. These limits are required operator settings with no default. The swapper does not start without them. Their values are open operator decisions.
-- On a lending route, a row whose user has no share value left is excluded after a decoded simulation revert. The rest of the transaction is simulated again.
-- It buys each schedule at most once in one run.
-- It simulates the exact transaction before the send. A simulation shows only success or failure. It is not a measured price.
-- It does not open the protected purchase window.
-
-A group or a row that the swapper omits stays due. If it waits past its next due day, a later purchase consumes only the newest due slot. There is no catch-up.
+The BitChill swapper is operated software, not a contract. It decides which due schedules to send, quotes the pair of `quotedStablecoinIn` and `minRbtcOut`, and checks the result before a send. Its behaviour is on the [offchain services page](/docs/contracts/offchain-services#swapper). Its operator values are not published.
 
 ## Owner settings on the manager
 

@@ -114,3 +114,4 @@ The handler also checks that the venue took exactly the retrieved stablecoin. A 
 - [Core calls](/docs/contracts/core-contracts)
 - [Address status](/docs/contracts/addresses)
 - [Integration notes](/docs/contracts/integration)
+- [Offchain services](/docs/contracts/offchain-services)

@@ -101,7 +101,7 @@ When liquidity is deep enough, a reviewed configuration can enable a DEX token. 
 
 1. The owner deploys the DEX handlers from the reviewed source and sets the token minimum on the manager.
 2. The owner assigns each handler in the registry with `assignHandler(token, routeIndex, handler)`.
-3. The operators add the new pairs to the configuration of the swapper, the monitoring service, the data API, and the app. Each service already knows the token and the route.
+3. The operators add the new pairs to the configuration of the swapper, the monitoring service, the data API, and the app. Each service already knows the token and the route. See [Offchain services](/docs/contracts/offchain-services).
 4. The swapper then requires its DEX settings for that token: the swap path, the quoter, the WRBTC address, the execution-quality tolerance, and the price-impact limit. A DOC-only configuration does not need them.
 
 ## Not at launch
