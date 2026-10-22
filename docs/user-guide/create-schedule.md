@@ -31,6 +31,7 @@ The call reverts when any of these checks fail:
 - The period is below the protocol minimum.
 - The period is not a whole number of UTC days.
 - You already hold the maximum number of schedules for this token.
+- On a LayerBank route, the lending market does not take exactly the deposit. The call then reverts, and your tokens stay in your account.
 
 The deployment script sets a minimum purchase of 25 whole tokens for DOC, USDRIF, and USDT0, in each token's own decimals. It sets the minimum period to 7 days. It sets the schedule cap to 10 schedules for each token. The owner can change these values. They are not a live setting, because the contracts are not deployed. There is no single raw-unit minimum for every stablecoin. USDT0 uses 6 decimals. DOC and USDRIF use 18 decimals.
 
