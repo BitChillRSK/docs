@@ -66,7 +66,7 @@ Network: Rootstock Mainnet
 RPC: https://public-node.rsk.co
 Chain ID: 30
 Symbol: RBTC
-Explorer: https://explorer.rsk.co
+Explorer: https://rootstock.blockscout.com
 ```
 
 ## Contract addresses

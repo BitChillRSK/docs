@@ -20,7 +20,7 @@ A Rootstock wallet can be any wallet that supports chain ID 30. Common choices a
 | RPC URL | `https://public-node.rsk.co` |
 | Chain ID | 30 |
 | Currency symbol | RBTC |
-| Block explorer | `https://explorer.rsk.co` |
+| Block explorer | `https://rootstock.blockscout.com` |
 
 ## Add the network in MetaMask
 
