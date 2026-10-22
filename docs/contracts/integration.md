@@ -54,7 +54,7 @@ function createDcaSchedule(
 
 Route indexes in the deployment script are 0 for idle and 1 for LayerBank. DOC, USDRIF, and USDT0 each have both routes, so there are six launch pairs. Index 2 is not registered at launch. A call with index 2 reverts with `DcaManager__TokenNotAccepted`. Use a pair from the [route table](/docs/getting-started/supported-assets#route-pairs). Tropykus is not a route.
 
-Generic support for another route index is possible in a future reviewed deployment. Do not hard-code a seventh pair. Read the handler with `getHandler(token, routeIndex)` on the registry. A zero address means that pair has no handler.
+Generic support for another route index is possible in a future reviewed deployment. Do not add a pair that the deployment does not assign. Read the handler with `getHandler(token, routeIndex)` on the registry. A zero address means that pair has no handler.
 
 ## Claim rBTC
 
@@ -135,7 +135,7 @@ Purchase calls, examples:
 - `PurchaseRbtc__InputAmountNotFullySpent`
 - `LendingHandler__ZeroShareValue`
 
-The second argument of `PurchaseRbtc__BelowSwapperMinimum` is the minimum after scaling to the actual input. It is not the `minRbtcOut` value of the batch. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum).
+The second argument of `PurchaseRbtc__BelowSwapperMinimum` is the minimum after scaling to the actual input. It can differ from the `minRbtcOut` value of the batch. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum).
 
 ## Exit rules for a client
 
