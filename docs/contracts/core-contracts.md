@@ -116,7 +116,7 @@ The BitChill swapper is operated software. It is not a contract. This section de
 
 - It buys only for the six launch pairs. It does not buy a schedule on route index 2.
 - It accepts only the launch swap paths: USDRIF → USDT0 (0.05% pool) → WRBTC (0.30% pool), and USDT0 → WRBTC (0.30% pool). Before a quote, it reads the active swap path of each handler on chain. A different path omits that handler's group.
-- Each handler group keeps one quoted pair of `quotedStablecoinIn` and `minRbtcOut` through the simulation, the send, and a retry.
+- Each handler group keeps `quotedStablecoinIn` and `minRbtcOut` together as one pair through the simulation, the send, and a retry. A stale DOC quote is quoted again once, and the new pair replaces the whole old pair. A stale Uniswap quote is not quoted again. That group is omitted.
 - USDRIF and USDT0 groups use Uniswap quotes. The groups of one transaction are quoted in transaction order, because a later group trades after the earlier groups on a shared pool.
 - A DOC group always has a positive minimum. The swapper computes the expected native rBTC from Money on Chain redemption pricing, after Money on Chain fees and before the BitChill fee. It then subtracts a configured tolerance. If that quote fails, the swapper omits the DOC group. It never sends a DOC group with a zero minimum. Other groups can still go.
 - Before a send that contains DOC work, the swapper reads the Money on Chain gas price cap and the free DOC capacity. A DOC group that does not fit waits for a later run.
