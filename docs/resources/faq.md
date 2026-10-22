@@ -50,7 +50,7 @@ The protocol contracts are not deployed. The [address page](/docs/contracts/addr
 
 The cadence is a whole number of UTC days, measured from the cadence anchor. The anchor is a UTC midnight, or zero before the first purchase. It is not the purchase time. The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day. There is no guaranteed minute. Missed slots are skipped. There is no catch-up.
 
-The deployment script uses a minimum of 7 days. The owner can change the minimum. The contract does not allow a minimum below one UTC day.
+The deployment configuration uses a minimum of 7 days. The owner can change the minimum. The contract does not allow a minimum below one UTC day.
 
 ### What else does a purchase need?
 
@@ -64,7 +64,7 @@ The purchase amount also cannot exceed the schedule principal.
 
 ### Can I hold more than one schedule?
 
-Yes, up to the cap for that stablecoin. The deployment script uses a cap of 10. Each schedule has its own id, balance, amount, cadence, and route. rBTC for the same token and route is stored in one handler.
+Yes, up to the cap for that stablecoin. The deployment configuration uses a cap of 10. Each schedule has its own id, balance, amount, cadence, and route. rBTC for the same token and route is stored in one handler.
 
 ### What does a schedule pause do?
 
