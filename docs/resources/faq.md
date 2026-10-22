@@ -82,7 +82,7 @@ The swapper submits the purchase transaction and pays that gas. You pay gas for 
 
 ### How do I claim rBTC?
 
-Call `withdrawAccumulatedRbtc` for one token and route, or `withdrawAllAccumulatedRbtc` for several pairs. The balance is per account, token, and route. A claim does not delete the schedule. A delete does not claim the rBTC.
+Call `withdrawAllAccumulatedRbtc` with a list of stablecoins and a matching list of route indexes. For one pair, send one entry in each list. For several pairs, send one entry for each pair. The balance is per account, token, and route. A claim does not delete the schedule. A delete does not claim the rBTC.
 
 ### Is rBTC the same as BTC with no cost?
 
