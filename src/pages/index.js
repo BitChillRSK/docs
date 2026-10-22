@@ -55,7 +55,7 @@ function HomepageFeatures() {
           />
           <Feature
             title="Idle or lending"
-            description="The idle route earns no lending yield. LayerBank can lend DOC, USDRIF, and USDT0. Sovryn can lend DOC. Tropykus is not a route."
+            description="The idle route earns no lending yield. LayerBank can lend DOC, USDRIF, and USDT0. Sovryn is not a launch route. Tropykus is not a route."
           />
           <Feature
             title="Your exit"

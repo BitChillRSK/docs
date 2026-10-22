@@ -44,7 +44,7 @@ A new schedule has a cadence anchor of zero. The anchor is not the creation time
 
 ## After creation
 
-The stablecoin is in the handler for that token and route. An idle handler holds it and earns no lending yield. A LayerBank or Sovryn handler can lend it. Purchased rBTC is claimed later. It is not sent to you inside the purchase.
+The stablecoin is in the handler for that token and route. An idle handler holds it and earns no lending yield. A LayerBank handler can lend it. Purchased rBTC is claimed later. It is not sent to you inside the purchase.
 
 ## Read next
 

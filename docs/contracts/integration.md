@@ -52,7 +52,9 @@ function createDcaSchedule(
 
 `purchasePeriod` is a whole number of UTC days, in seconds. `purchaseAmount` is the gross stablecoin amount and cannot exceed the deposit. Approve the handler for that token and route, for the full deposit. The handler pulls the deposit. The handler address comes from the deployment record after deployment. The protocol is not deployed, so this page does not publish a handler address.
 
-Route indexes in the deployment script are 0 for idle, 1 for LayerBank, and 2 for Sovryn. Use a pair from the route table. Tropykus is not a route.
+Route indexes in the deployment script are 0 for idle and 1 for LayerBank. DOC, USDRIF, and USDT0 each have both routes, so there are six launch pairs. Index 2 is not registered at launch. A call with index 2 reverts with `DcaManager__TokenNotAccepted`. Use a pair from the [route table](/docs/getting-started/supported-assets#route-pairs). Tropykus is not a route.
+
+Generic support for another route index is possible in a future reviewed deployment. Do not hard-code a seventh pair. Read the handler with `getHandler(token, routeIndex)` on the registry. A zero address means that pair has no handler.
 
 ## Claim rBTC
 
