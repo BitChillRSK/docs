@@ -107,8 +107,61 @@ Each venue adds its own check:
 
 | Venue | Check in the handler |
 | --- | --- |
-| Uniswap (USDRIF, USDT0) | The router gets the higher of the scaled minimum and an oracle floor. The handler also requires the measured WRBTC to reach the oracle floor. Otherwise it reverts with `PurchaseUniswap__BelowOracleFloor(received, floor)` (selector `0x0f486c85`). |
-| Money on Chain (DOC) | The handler passes no minimum to Money on Chain and has no oracle floor. The scaled caller minimum is the only output check. |
+| Money on Chain (DOC, initial launch) | The handler passes no minimum to Money on Chain and has no oracle floor. The scaled caller minimum is the only output check. |
+| Uniswap V3 (USDRIF, USDT0, DEX handlers not enabled at the initial launch) | The router gets the higher of the scaled minimum and an oracle floor. The handler also requires the measured WRBTC to reach the oracle floor. Otherwise it reverts with `PurchaseUniswap__BelowOracleFloor(received, floor)` (selector `0x0f486c85`). |
+
+## Money on Chain handler
+
+A DOC handler calls `redeemFreeDoc(amount)` on the Money on Chain proxy from its own account. It measures the native rBTC that its balance gained. It passes no minimum to Money on Chain. Money on Chain can redeem less than the amount when its free DOC is short. The handler then reverts the batch with `PurchaseRbtc__InputAmountNotFullySpent`, because the venue did not take the whole input. The BitChill swapper reads the free DOC capacity and the Money on Chain gas price cap before it sends DOC work.
+
+## DEX handler settings
+
+The DEX handlers are implemented and tested. The initial launch does not enable them. This section is the protocol reference for a later reviewed configuration.
+
+```solidity
+// Owner only
+function setPurchasePathAllowed(address[] memory intermediateTokens, uint24[] memory poolFeeRates, bool allowed) external;
+function setAmountOutMinimumPercent(uint256 amountOutMinimumPercent) external;
+function setAmountOutMinimumSafetyCheck(uint256 amountOutMinimumSafetyCheck) external;
+function setMocOracle(address newOracle) external;
+
+// Owner or an allowlisted swapper
+function setPurchasePath(address[] memory intermediateTokens, uint24[] memory poolFeeRates) external;
+
+// Anyone
+function restoreSwapRouterApproval() external;
+
+function getSwapPath() external view returns (bytes memory);
+function isPurchasePathAllowed(bytes32 pathHash) external view returns (bool);
+function getAmountOutMinimumPercent() external view returns (uint256);
+function getAmountOutMinimumSafetyCheck() external view returns (uint256);
+function getMocOracle() external view returns (ICoinPairPrice);
+```
+
+### Swap path
+
+- The path is Uniswap V3 `exactInput` bytes: the handler's stablecoin, then a pool fee and an intermediate token for each hop, then the last pool fee and WRBTC. An empty intermediate list is a direct pair. `poolFeeRates` must have one more entry than `intermediateTokens`.
+- The constructor installs the first path and allowlists it.
+- The owner allowlists or revokes an exact encoded path. The allowlist key is the hash of the encoded bytes. The owner cannot revoke the active path.
+- `setPurchasePath` activates a path that is already allowlisted. The owner or an allowlisted swapper can call it. Any other path reverts with `PurchaseUniswap__PurchasePathNotAllowed`.
+- A path change emits `PurchaseUniswap__NewPathSet(intermediateTokens, poolFeeRates, newPath)`. An allowlist change emits `PurchaseUniswap__PurchasePathAllowedSet`.
+- After a swap, the router's balance of each intermediate token must equal its balance before the swap. Otherwise the purchase reverts with `PurchaseUniswap__IntermediateBalanceChangedInRouter`.
+
+### Oracle floor
+
+The floor is the lowest WRBTC output that the handler accepts:
+
+```text
+floor = stablecoinAmount × 10^(18 − stablecoinDecimals) × amountOutMinimumPercent / btcUsdPrice
+```
+
+- `btcUsdPrice` comes from the Money on Chain BTC/USD oracle, with 18 decimals. The handler assumes that the stablecoin is worth one US dollar.
+- The oracle must report a valid price. Otherwise the purchase reverts with `PurchaseUniswap__OutdatedPrice`.
+- `amountOutMinimumPercent` is scaled to 1e18, so 1e18 is 100%. The router gets the higher of the floor and the scaled caller minimum. The measured WRBTC must also reach the floor.
+- The floor is a loose emergency bound. The swapper's per-batch minimum is the operational bound.
+- Bounds: the floor and the safety check are at most 100%, and the floor cannot be below the safety check. To lower the floor below the safety check, the owner first lowers the safety check in a separate transaction.
+- The contract repository's deployment configuration starts with a floor of 97% and a safety check of 95%. The owner can change both within the bounds.
+- A stablecoin with more than 18 decimals is rejected at construction.
 
 ## BitChill swapper behaviour
 
@@ -148,11 +201,12 @@ function addSwapper(address swapper) external;
 function revokeSwapper(address swapper) external;
 
 function getHandler(address token, uint256 routeIndex) external view returns (address handler);
+function getRouteClass(uint256 index) external view returns (RouteClass);
 function areDepositsPaused(address token, uint256 routeIndex) external view returns (bool paused);
 function isSwapper(address account) external view returns (bool);
 ```
 
-A route class is set once. A handler assignment is add-only. One handler address backs one pair. The deployment script registers route 1 as a lending route and assigns the six launch handlers. It does not register route 2. A deposit pause blocks new deposits for that pair. It does not block a purchase, an edit, a withdrawal, a delete, or an rBTC claim.
+A route class is set once. A handler assignment is add-only. One handler address backs one pair. The [architecture page](/docs/contracts/architecture#operationsadmin) lists the checks of `assignHandler`. The initial launch registers route 1 as a lending route and assigns two handlers: DOC idle and DOC LayerBank. It does not register route 2. A later reviewed configuration can assign the USDRIF and USDT0 DEX handlers on the same registry. A deposit pause blocks new deposits for that pair. It does not block a purchase, an edit, a withdrawal, a delete, or an rBTC claim.
 
 ## Fee settings on a handler
 

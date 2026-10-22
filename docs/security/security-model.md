@@ -64,17 +64,17 @@ The owner sets the fee curve on each handler. The contract rejects a maximum rat
 A purchase or a lending route depends on systems outside these contracts:
 
 - Money on Chain, for a DOC purchase
-- Uniswap, for a USDRIF or USDT0 purchase
 - LayerBank, for a LayerBank route
 - Rootstock block production and gas
+- Uniswap V3 and the Money on Chain BTC/USD oracle, for a USDRIF or USDT0 purchase through a DEX handler. The initial launch does not enable those handlers.
 
-Sovryn is not a launch route. Tropykus is not a route in this protocol. The idle route does not depend on a lending venue.
+The initial launch supports DOC only, on idle and LayerBank. Sovryn is not a launch route. Tropykus is not a route in this protocol. The idle route does not depend on a lending venue.
 
-A Uniswap purchase must reach an oracle floor and the scaled batch minimum. A Money on Chain redemption uses the Money on Chain price. The DOC handler passes no minimum to Money on Chain and has no oracle floor, so the scaled batch minimum is its only output check. The BitChill swapper always sends a positive DOC minimum. A failed check reverts the purchase. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum).
+A Money on Chain redemption uses the Money on Chain price. The DOC handler passes no minimum to Money on Chain and has no oracle floor, so the scaled batch minimum is its only output check. The BitChill swapper always sends a positive DOC minimum. A DEX handler purchase must reach an oracle floor and the scaled batch minimum. Its swap path must be on the handler's allowlist. A failed check reverts the purchase. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum) and [DEX handler settings](/docs/contracts/core-contracts#dex-handler-settings).
 
 ## Deployment shape
 
-The deployment script creates new contract instances and assigns each handler once. These pages do not describe a proxy upgrade of a live deployment, because this version is not deployed.
+The deployment creates new contract instances. The registry owner assigns each handler once, and an assignment cannot be replaced. A later pair, such as a USDRIF or USDT0 DEX handler, is a new handler contract and a new assignment on the same registry. These pages do not describe a proxy upgrade of a live deployment, because this version is not deployed.
 
 ## Read next
 
