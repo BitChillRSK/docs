@@ -88,7 +88,7 @@ A USDRIF purchase uses USDT0 as the intermediate token. It does not use the lega
 
 ## Enabling USDRIF and USDT0
 
-USDRIF and USDT0 use the same manager, registry, schedule rules, fee curve, and claim call as DOC. Only the purchase venue differs: their handlers swap on Uniswap V3 instead of redeeming at Money on Chain.
+USDRIF and USDT0 use the same manager, registry, schedule rules, fee formula, and claim call as DOC. Only the purchase venue differs: their handlers swap on Uniswap V3 instead of redeeming at Money on Chain.
 
 A DEX purchase must pass these checks:
 

@@ -122,7 +122,7 @@ The handler holds the stablecoin. The balance earns no lending yield.
 
 ### LayerBank
 
-The lending venue of route index 1. The initial launch uses it for DOC. The protocol also has LayerBank handlers for USDRIF and USDT0.
+The lending venue of route index 1. The initial launch uses it for DOC. The protocol also has LayerBank handlers for USDRIF and USDT0, which the initial launch does not enable.
 
 ### Sovryn
 

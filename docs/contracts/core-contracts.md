@@ -99,7 +99,7 @@ The protected window lasts five blocks. During it, the contract refuses amount e
 Each `Batch` carries one quoted pair: the input of the quote and the minimum output for that input.
 
 - `quotedStablecoinIn` is the gross stablecoin input that the quote used, in the token's base units. It is normally the sum of the gross purchase amounts of the rows. USDT0 uses 6 decimals. DOC and USDRIF use 18 decimals. This value does not change a schedule debit.
-- `minRbtcOut` is the gross minimum output for that input, in wei. Gross means before the BitChill purchase fee. On a Uniswap route the output is WRBTC. On the Money on Chain route the output is native rBTC.
+- `minRbtcOut` is the gross minimum output for that input, in wei. Gross means before the BitChill purchase fee. On a DOC handler (Money on Chain) the output is native rBTC. On a DEX handler (Uniswap V3) the output is WRBTC.
 - The handler first pulls the stablecoin of the rows. The actual input can differ from the quoted input, for example after lending rounding or a short lending row.
 - The handler then scales the minimum to the actual input and rounds up: `ceil(minRbtcOut × actualInput / quotedStablecoinIn)`.
 - The handler measures the gross output it received. If that output is below the scaled minimum, the purchase reverts with `PurchaseRbtc__BelowSwapperMinimum(received, scaledMinimum)`. Every schedule debit of the batch reverts with it.
@@ -212,7 +212,7 @@ function setFeeRateParams(uint256 minFeeRate, uint256 maxFeeRate, uint256 feePur
 function getFeeSettings() external view returns (FeeSettings memory);
 ```
 
-Rates are basis points. The maximum rate cannot be above 500. The weight is applied to the rBTC output. The purchase still spends the gross stablecoin amount. No live rate is published.
+Rates are basis points. The maximum rate cannot be above 500. The weight is applied to the rBTC output. The purchase still spends the gross stablecoin amount. No live rate is published. The [fees page](/docs/user-guide/fees#fee-formula) gives the formula and the rBTC split.
 
 ## Validation that callers hit
 
