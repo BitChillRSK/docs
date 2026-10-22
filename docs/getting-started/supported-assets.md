@@ -84,7 +84,7 @@ A DOC purchase redeems DOC at Money on Chain for native rBTC. A USDRIF or USDT0 
 
 These paths apply when a DEX token is enabled. The initial launch does not use them.
 
-A USDRIF purchase uses USDT0 as the intermediate token. It does not use the legacy USDT token. The pool fee is part of the swap. It is not the BitChill purchase fee. A claim pays native rBTC, because the DEX handler unwraps WRBTC before the payment.
+A USDRIF purchase uses USDT0 as the intermediate token. It does not use the legacy USDT token. The pool fee is part of the swap. It is not the BitChill purchase fee. A claim pays native rBTC, because the DEX handler unwraps WRBTC before the payment. The [DEX handler settings](/docs/contracts/core-contracts#dex-handler-settings) explain the path allowlist and the oracle floor.
 
 ## Enabling USDRIF and USDT0
 
