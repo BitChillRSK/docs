@@ -36,7 +36,9 @@ function getAccumulatedRbtcBalance(address user, address token, uint256 routeInd
 
 The unit is wei of rBTC. The balance is for that account, token, and route.
 
-An accrued-interest figure is not available. Do not store or display an accrued-interest quote from an offchain cache. Do not publish a live APY.
+Read accrued interest on chain with `getAccruedInterest(user, token, routeIndex)` on a lending route. Do not store or display an accrued-interest quote from an offchain cache. Do not present a lending rate as guaranteed. The BitChill app labels the LayerBank supply APY as indicative.
+
+Read the token minimum on chain with `getTokenMinPurchaseAmount(token)` before a create or an amount edit. The owner can change it after launch.
 
 ## Create
 

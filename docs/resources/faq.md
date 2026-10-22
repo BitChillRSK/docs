@@ -58,7 +58,7 @@ A purchase needs an allowlisted swapper, enough principal for the gross amount, 
 
 ### What is the minimum purchase?
 
-The owner sets a minimum for each stablecoin. The deployment script uses 25 whole tokens, in that token's decimals. USDT0 has 6 decimals. DOC and USDRIF have 18 decimals. There is no live minimum, because the contracts are not deployed.
+The DcaManager owner sets a minimum for each stablecoin and can change it after launch. The app reads the current value on chain before it accepts a schedule. The deployment configuration starts DOC at 25 DOC. A minimum is in that token's decimals: USDT0 has 6 decimals, and DOC and USDRIF have 18. A change applies to new schedules and to purchase-amount edits, not to the stored amount of an existing schedule. There is no live minimum yet, because the contracts are not deployed.
 
 The purchase amount also cannot exceed the schedule principal.
 
@@ -86,7 +86,7 @@ The owner configures the fee. These pages do not state a live percentage. The sc
 
 ### What yield do I earn?
 
-The idle route earns no lending yield. A LayerBank route can lend the waiting stablecoin. LayerBank yield is not guaranteed. An accrued-interest figure is not available. The offchain system does not store an accrued-interest quote. These pages do not publish a live APY.
+The idle route earns no lending yield. A LayerBank route can lend the waiting stablecoin. LayerBank yield is not guaranteed. The app shows an indicative LayerBank supply APY from the pool's current variable rate. It excludes incentive rewards and it is not a BitChill rate. The app reads your accrued interest on chain with `getAccruedInterest`. The offchain system does not store an accrued-interest quote. These pages do not publish an APY or an interest figure.
 
 ### Who pays gas for a purchase?
 
