@@ -35,7 +35,18 @@ The call reverts when any of these checks fail:
 - You already hold the maximum number of schedules for this token.
 - On a LayerBank route, the lending market does not take exactly the deposit. The call then reverts, and your tokens stay in your account.
 
-The deployment script sets a minimum purchase of 25 whole tokens for DOC, USDRIF, and USDT0, in each token's own decimals. It sets the minimum period to 7 days. It sets the schedule cap to 10 schedules for each token. The owner can change these values. They are not a live setting, because the contracts are not deployed. There is no single raw-unit minimum for every stablecoin. USDT0 uses 6 decimals. DOC and USDRIF use 18 decimals.
+### Minimum purchase
+
+The DcaManager owner sets the minimum purchase amount for each stablecoin with `setTokenMinPurchaseAmount`. The owner can change it after launch. The app reads the current value on chain with `getTokenMinPurchaseAmount` and accepts a schedule only against that value.
+
+- A change applies to a new schedule and to a purchase-amount edit. It does not change the stored amount of an existing schedule. A purchase does not check the minimum.
+- The minimum is in the token's own base units. There is no single raw-unit minimum for every stablecoin. USDT0 uses 6 decimals. DOC and USDRIF use 18 decimals.
+- The contract repository's deployment configuration starts DOC at 25 whole tokens. That is a starting value, not a fixed rule.
+- Before a DEX token is enabled, the owner sets its minimum. Without a minimum, a create for that token reverts.
+
+### Period and schedule cap
+
+The deployment configuration sets the minimum period to 7 days and the schedule cap to 10 schedules for each token. The owner can change these values. None of these values is a live setting, because the contracts are not deployed.
 
 ## Schedule id
 

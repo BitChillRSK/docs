@@ -54,7 +54,7 @@ The initial launch supports DOC only, on idle and LayerBank. Sovryn is not a lau
 
 ## A principal example
 
-This table follows principal only. It uses a gross purchase of 100 DOC and a 7-day cadence. It does not show a fee, a price, or an interest amount. An accrued-interest figure is not available.
+This table follows principal only. It uses a gross purchase of 100 DOC and a 7-day cadence. It does not show a fee, a price, or an interest amount.
 
 | Due day | Principal before the purchase | Gross stablecoin spent |
 | --- | --- | --- |

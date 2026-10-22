@@ -31,7 +31,7 @@ function withdrawAllAccumulatedRbtc(address[] calldata tokens, uint256[] calldat
 
 `withdrawAllAccumulatedRbtc` is the only rBTC claim call. Its two arrays are positional pairs of token and route. For one pair, pass one-element arrays. For several pairs, pass one entry for each pair. A pair with no handler or with a zero balance is skipped. Empty arrays or arrays of different length revert. The [integration notes](/docs/contracts/integration#claim-rbtc) give examples.
 
-`withdrawTokenAndInterest` and `topUpFromInterest` are for a lending route. An idle schedule reverts those calls. `topUpFromInterest` adds lending interest to one schedule's principal. It does not move tokens out. A delete returns principal and does not claim interest or rBTC. An accrued-interest figure is not available on this site.
+`withdrawTokenAndInterest` and `topUpFromInterest` are for a lending route. An idle schedule reverts those calls. `topUpFromInterest` adds lending interest to one schedule's principal. It does not move tokens out. A delete returns principal and does not claim interest or rBTC. Read accrued interest with `getAccruedInterest`. These pages do not publish an interest figure.
 
 A withdrawal amount of the maximum `uint256` value means the whole principal of that schedule.
 
@@ -58,6 +58,7 @@ function getDcaSchedule(address token, uint64 scheduleId) external view returns 
 function getDcaSchedules(address user, address token)
     external view returns (uint64[] memory scheduleIds, DcaSchedule[] memory schedules);
 function getAccumulatedRbtcBalance(address user, address token, uint256 routeIndex) external view returns (uint256);
+function getAccruedInterest(address user, address token, uint256 routeIndex) external view returns (uint256);
 function getMinPurchasePeriod() external view returns (uint256);
 function getMaxSchedulesPerToken() external view returns (uint256);
 function getTokenMinPurchaseAmount(address token) external view returns (uint256);
@@ -65,7 +66,9 @@ function getTokenMinPurchaseAmount(address token) external view returns (uint256
 
 `getDcaSchedules` returns ids and records in the same order. A delete can move the last id into a freed slot. Address a schedule by the id and the token.
 
-An accrued-interest figure is not available from the offchain system. These pages do not publish one, and they do not publish a live APY.
+`getAccruedInterest` returns the lending interest of one account on one stablecoin and lending route, above the principal that its schedules hold. It is a quote at the market's current rate. It reverts on an idle route. The offchain system stores no copy. These pages do not publish an interest figure or an APY.
+
+`getTokenMinPurchaseAmount` returns the current minimum in the token's base units, or zero when no minimum is set.
 
 ## Swapper calls
 
@@ -176,6 +179,8 @@ function setTokenMinPurchaseAmount(address token, uint256 minPurchaseAmount) ext
 ```
 
 The minimum period is a whole number of UTC days and is at least one day. Each stablecoin has its own purchase minimum. A zero minimum is rejected.
+
+The owner can change a token minimum after launch. Each change emits `DcaManager__TokenMinPurchaseAmountSet(token, amount)`. The manager checks the minimum when a schedule is created and when its purchase amount is edited. An existing schedule keeps its stored amount, and a purchase does not check the minimum. A client reads the current value on chain. A create for a token with no minimum reverts with `DcaManager__TokenMinPurchaseAmountNotSet`.
 
 ## OperationsAdmin
 
