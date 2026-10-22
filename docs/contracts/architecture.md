@@ -32,7 +32,7 @@ A schedule is stored under the stablecoin and a decimal schedule id. The value h
 
 ## OperationsAdmin
 
-The registry maps a stablecoin and a route index to one handler. Index 0 is idle. The owner registers other indexes as idle or lending. In the deployment script, index 1 is LayerBank and index 2 is Sovryn.
+The registry maps a stablecoin and a route index to one handler. Index 0 is idle. The owner registers other indexes as idle or lending. The deployment script registers index 1 as the LayerBank lending route. It does not register index 2, which the contract constants name for Sovryn.
 
 The owner assigns a handler once for each pair. The owner can pause new deposits for one assigned pair. The owner keeps the swapper allowlist.
 
@@ -40,17 +40,18 @@ The owner assigns a handler once for each pair. The owner can pause new deposits
 
 A handler custodies the stablecoin for one pair and the rBTC bought for that pair. Users call the manager. The handler accepts those balance changes from the manager.
 
+The deployment script assigns six handlers:
+
 | Pair | Handler family | Purchase |
 | --- | --- | --- |
 | DOC idle | Idle DOC handler | Money on Chain |
 | DOC LayerBank | LayerBank DOC handler | Money on Chain |
-| DOC Sovryn | Sovryn DOC handler | Money on Chain |
 | USDRIF idle | Idle DEX handler | Uniswap |
 | USDRIF LayerBank | LayerBank DEX handler | Uniswap |
 | USDT0 idle | Idle DEX handler | Uniswap |
 | USDT0 LayerBank | LayerBank DEX handler | Uniswap |
 
-Tropykus is not a handler route in this protocol. An idle handler does not lend.
+Tropykus is not a handler route in this protocol. An idle handler does not lend. The contract source also has a Sovryn DOC handler. The launch deployment does not assign it. See [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
 
 ## Who can call
 
@@ -64,7 +65,7 @@ Tropykus is not a handler route in this protocol. An idle handler does not lend.
 
 The swapper submits one or more due schedule ids for one stablecoin and one route. The manager reads the buyer and the gross amount from the schedule. The handler spends that gross stablecoin. The fee is a share of the measured rBTC output. The buyer is credited with buyer-net rBTC.
 
-A batch can require a minimum rBTC output. If the measured output is below that minimum, the purchase reverts.
+A batch carries a gross minimum output and the stablecoin input that the minimum was quoted for. The handler scales the minimum to the actual input and rounds up. If the measured gross output is below the scaled minimum, the purchase reverts. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum).
 
 ## Read next
 

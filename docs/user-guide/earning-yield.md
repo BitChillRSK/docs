@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # Lending and idle balances
 
-Waiting stablecoin sits in the handler for the schedule's route. The idle route earns no lending yield. A LayerBank route and a Sovryn route can lend the stablecoin. Sovryn is a DOC route only.
+Waiting stablecoin sits in the handler for the schedule's route. The idle route earns no lending yield. A LayerBank route can lend the stablecoin. LayerBank is the only lending route at launch.
 
 The contracts are not deployed. An accrued-interest figure is not available. The offchain system does not store an accrued-interest quote. These pages do not publish a live APY.
 
@@ -14,9 +14,8 @@ The contracts are not deployed. An accrued-interest figure is not available. The
 | --- | --- |
 | Idle | Held by the handler. No lending yield. |
 | LayerBank | Can be lent. DOC, USDRIF, and USDT0 have this route. |
-| Sovryn | Can be lent. DOC has this route. |
 
-Tropykus is not a route in this protocol.
+Sovryn is not a launch route. Tropykus is not a route in this protocol.
 
 A purchase spends the schedule's gross purchase amount. It does not spend a separate interest balance by itself. Interest on a lending route stays in the lending position until you withdraw it or credit it to a schedule.
 
@@ -32,7 +31,7 @@ A schedule pause does not block an interest withdrawal. A deposit pause does not
 
 ## Risk
 
-A lending route depends on that venue. The venue can change liquidity and the yield. The yield is not a published BitChill rate. An idle route removes that lending exposure and also removes lending yield.
+A lending route depends on that venue. The venue can change liquidity and the yield. LayerBank yield is not guaranteed. The yield is not a published BitChill rate. An idle route removes that lending exposure and also removes lending yield.
 
 ## Read next
 

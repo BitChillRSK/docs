@@ -20,9 +20,9 @@ rBTC is the native asset of Rootstock. A description of backing is not an exchan
 
 ## Stablecoins
 
-| Stablecoin | Decimals | Routes in this protocol |
+| Stablecoin | Decimals | Routes at launch |
 | --- | --- | --- |
-| DOC | 18 | Idle, LayerBank, Sovryn |
+| DOC | 18 | Idle, LayerBank |
 | USDRIF | 18 | Idle, LayerBank |
 | USDT0 | 6 | Idle, LayerBank |
 
@@ -32,13 +32,12 @@ DOC and USDRIF are the other two stablecoins in the route table. This page does 
 
 ## Route pairs
 
-Each pair is one stablecoin and one route. The deployment script assigns one handler to each pair. Those handler contracts are not deployed.
+Each pair is one stablecoin and one route. The deployment script assigns one handler to each of six pairs. Those handler contracts are not deployed.
 
 | Stablecoin | Route | Lending yield while the stablecoin waits | Purchase venue |
 | --- | --- | --- | --- |
 | DOC | Idle | None | Money on Chain |
 | DOC | LayerBank | Lending is possible | Money on Chain |
-| DOC | Sovryn | Lending is possible | Money on Chain |
 | USDRIF | Idle | None | Uniswap |
 | USDRIF | LayerBank | Lending is possible | Uniswap |
 | USDT0 | Idle | None | Uniswap |
@@ -48,11 +47,32 @@ Tropykus is not a route in this protocol. The idle route earns no lending yield.
 
 The route index in the contracts is a number:
 
-| Index | Route |
+| Index | Route at launch |
 | --- | --- |
 | 0 | Idle |
-| 1 | LayerBank |
-| 2 | Sovryn |
+| 1 | LayerBank. The deployment script registers it as a lending route. |
+| 2 | Not registered and not assigned. See [Not at launch](#not-at-launch). |
+
+## Purchase paths
+
+A DOC purchase redeems DOC at Money on Chain for native rBTC. A USDRIF or USDT0 purchase swaps through Uniswap pools to wrapped rBTC (WRBTC). The deployment script sets these swap paths:
+
+| Stablecoin | Swap path at launch |
+| --- | --- |
+| USDRIF | USDRIF → USDT0 (0.05% pool) → WRBTC (0.30% pool) |
+| USDT0 | USDT0 → WRBTC (0.30% pool) |
+
+A USDRIF purchase uses USDT0 as the intermediate token. It does not use the legacy USDT token. The pool fee is part of the swap. It is not the BitChill purchase fee. A claim pays native rBTC.
+
+## Not at launch
+
+### Sovryn
+
+The contract source keeps a Sovryn DOC handler, and the contract constants name index 2 for Sovryn. The launch deployment does not register index 2 and does not assign a Sovryn handler. A create with route index 2 finds no handler and reverts. No schedule can exist on that route. A claim list or an interest list skips a pair with index 2. A Sovryn route can only come from a future reviewed deployment. These pages describe it only as that possible future support.
+
+### Earlier BitChill deployment (historical)
+
+An earlier BitChill deployment used Sovryn and Tropykus routes. Positions in that deployment stay in its own contracts and keep their own labels. These pages do not describe that deployment. This protocol does not use its contracts.
 
 ## Receipt tokens named for Rootstock
 

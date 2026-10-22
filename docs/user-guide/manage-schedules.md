@@ -10,7 +10,7 @@ You manage a schedule with the stablecoin and the decimal schedule id. The contr
 
 | Action | Call | What it changes |
 | --- | --- | --- |
-| Add principal | `depositToken` | Increases the schedule balance |
+| Add principal | `depositToken` | Increases the schedule balance. On a LayerBank route, the call reverts if the lending market does not take exactly the deposit. |
 | Change the purchase amount | `updatePurchaseAmount` | Sets the next gross purchase |
 | Change the cadence | `updatePurchasePeriod` | Sets the next whole-day period |
 | Pause or resume purchases | `setSchedulePaused` | Blocks or allows purchases for this schedule |

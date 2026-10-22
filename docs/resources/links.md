@@ -47,9 +47,8 @@ A PowPeg transfer is not a cost-free 1:1 conversion. Backing and an exchange pri
 | RIF on Chain | USDRIF. [rif.moneyonchain.com](https://rif.moneyonchain.com/) |
 | Uniswap | USDRIF and USDT0 purchases. [uniswap.org](https://uniswap.org/) |
 | LayerBank | Lending route for DOC, USDRIF, and USDT0 |
-| Sovryn | Lending route for DOC. [sovryn.com](https://sovryn.com/) |
 
-Tropykus is not a venue in this protocol. The idle route is not a lending venue.
+Sovryn is not a launch venue. Tropykus is not a venue in this protocol. The idle route is not a lending venue.
 
 ## Wallets
 

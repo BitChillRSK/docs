@@ -44,7 +44,7 @@ The window stops a user from changing the purchased state after the swapper has 
 | Owner | Owner-only configuration |
 | Handler entry | The call must come from the manager |
 
-The manager uses a reentrancy guard on the external calls that change balances, edit schedules, run purchases, and pay claims.
+The manager uses a reentrancy guard on the user calls that change balances, edit schedules, and pay claims. The purchase calls are swapper-only and do not take that guard. A token or a lending market can therefore run a purchase from a callback during a user call. For that reason, a deposit or a withdrawal stores and logs the new balance before the handler call. See [Event order](/docs/contracts/integration#event-order).
 
 ## Purchase limits
 
@@ -52,7 +52,7 @@ The manager uses a reentrancy guard on the external calls that change balances, 
 - The period is a whole number of UTC days and meets the minimum.
 - The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day.
 - Missed slots are skipped. There is no catch-up.
-- The measured rBTC can be checked against a batch minimum. A short result reverts the purchase.
+- The measured gross rBTC is checked against the batch minimum, scaled to the actual input and rounded up. A short result reverts the purchase.
 - A schedule pause reverts a batch that includes that schedule.
 
 ## Fee limit
@@ -66,12 +66,11 @@ A purchase or a lending route depends on systems outside these contracts:
 - Money on Chain, for a DOC purchase
 - Uniswap, for a USDRIF or USDT0 purchase
 - LayerBank, for a LayerBank route
-- Sovryn, for the DOC Sovryn route
 - Rootstock block production and gas
 
-Tropykus is not a route in this protocol. The idle route does not depend on a lending venue.
+Sovryn is not a launch route. Tropykus is not a route in this protocol. The idle route does not depend on a lending venue.
 
-A DEX purchase uses a price check and a minimum output. A Money on Chain redemption uses the Money on Chain price and can also face the batch minimum. A failed check reverts the purchase.
+A Uniswap purchase must reach an oracle floor and the scaled batch minimum. A Money on Chain redemption uses the Money on Chain price. The DOC handler passes no minimum to Money on Chain and has no oracle floor, so the scaled batch minimum is its only output check. The BitChill swapper always sends a positive DOC minimum. A failed check reverts the purchase. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum).
 
 ## Deployment shape
 

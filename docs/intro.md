@@ -44,15 +44,17 @@ flowchart TB
 
 A purchase has no guaranteed minute. A missed cadence slot is skipped. There is no catch-up. A purchase also needs the swapper, enough balance, and a schedule that is not purchase-paused. A deposit pause does not by itself stop a purchase. The purchase also needs liquidity, a passing price check, and a successful transaction.
 
-## Routes in this protocol
+## Routes at launch
 
-| Stablecoin | Decimals | Routes |
+The deployment script assigns six handlers. Each handler serves one stablecoin on one route.
+
+| Stablecoin | Decimals | Routes at launch |
 | --- | --- | --- |
-| DOC | 18 | Idle, LayerBank, Sovryn |
-| USDRIF | 18 | Idle, LayerBank |
-| USDT0 | 6 | Idle, LayerBank |
+| DOC | 18 | Idle (index 0), LayerBank (index 1) |
+| USDRIF | 18 | Idle (index 0), LayerBank (index 1) |
+| USDT0 | 6 | Idle (index 0), LayerBank (index 1) |
 
-Tropykus is not a route in this protocol.
+Sovryn is not a launch route. Tropykus is not a route in this protocol. The [supported tokens page](/docs/getting-started/supported-assets#not-at-launch) explains route index 2 and the earlier BitChill deployment.
 
 ## Security status
 
