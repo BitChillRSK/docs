@@ -152,7 +152,7 @@ function areDepositsPaused(address token, uint256 routeIndex) external view retu
 function isSwapper(address account) external view returns (bool);
 ```
 
-A route class is set once. A handler assignment is add-only. One handler address backs one pair. A deposit pause blocks new deposits for that pair. It does not block a purchase, an edit, a withdrawal, a delete, or an rBTC claim.
+A route class is set once. A handler assignment is add-only. One handler address backs one pair. The deployment script registers route 1 as a lending route and assigns the six launch handlers. It does not register route 2. A deposit pause blocks new deposits for that pair. It does not block a purchase, an edit, a withdrawal, a delete, or an rBTC claim.
 
 ## Fee settings on a handler
 
