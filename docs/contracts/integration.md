@@ -36,7 +36,9 @@ function getAccumulatedRbtcBalance(address user, address token, uint256 routeInd
 
 The unit is wei of rBTC. The balance is for that account, token, and route.
 
-An accrued-interest figure is not available. Do not store or display an accrued-interest quote from an offchain cache. Do not publish a live APY.
+Read accrued interest on chain with `getAccruedInterest(user, token, routeIndex)` on a lending route. Do not store or display an accrued-interest quote from an offchain cache. Do not present a lending rate as guaranteed. The BitChill app labels the LayerBank supply APY as indicative.
+
+Read the token minimum on chain with `getTokenMinPurchaseAmount(token)` before a create or an amount edit. The owner can change it after launch.
 
 ## Create
 
@@ -52,9 +54,9 @@ function createDcaSchedule(
 
 `purchasePeriod` is a whole number of UTC days, in seconds. `purchaseAmount` is the gross stablecoin amount and cannot exceed the deposit. Approve the handler for that token and route, for the full deposit. The handler pulls the deposit. The handler address comes from the deployment record after deployment. The protocol is not deployed, so this page does not publish a handler address.
 
-Route indexes in the deployment script are 0 for idle and 1 for LayerBank. DOC, USDRIF, and USDT0 each have both routes, so there are six launch pairs. Index 2 is not registered at launch. A create with index 2 reverts with `DcaManager__TokenNotAccepted`, so no schedule can exist on that route. `withdrawAllAccumulatedRbtc` and `withdrawAllAccumulatedInterest` skip a pair with index 2. Use a pair from the [route table](/docs/getting-started/supported-assets#route-pairs). Tropykus is not a route.
+Route indexes are 0 for idle and 1 for LayerBank. The initial launch has two active pairs: DOC on index 0 and DOC on index 1. The protocol also implements USDRIF and USDT0 on both indexes. The initial launch does not assign those handlers. A create on a pair with no handler reverts, so no schedule can exist on it. Index 2 is not registered at launch. A DOC create with index 2 reverts with `DcaManager__TokenNotAccepted`. `withdrawAllAccumulatedRbtc` and `withdrawAllAccumulatedInterest` skip a pair with no handler, including a pair with index 2. Use a pair from the [route table](/docs/getting-started/supported-assets#route-pairs). Tropykus is not a route.
 
-Generic support for another route index is possible in a future reviewed deployment. Do not add a pair that the deployment does not assign. Read the handler with `getHandler(token, routeIndex)` on the registry. A zero address means that pair has no handler.
+Take the active pairs from the deployment, not from a fixed list. Read the handler with `getHandler(token, routeIndex)` on the registry. A zero address means that pair has no handler. A later reviewed configuration can assign a catalog pair on the same registry, for example a USDRIF or USDT0 DEX handler or a route 2 handler. Route 2 is not registered at launch, so the owner first calls `registerRoute(2, true)`. Without it, `assignHandler` reverts with `OperationsAdmin__RouteNotRegistered`. An integration that reads the registry needs no code change for it.
 
 ## Claim rBTC
 
@@ -65,7 +67,8 @@ function withdrawAllAccumulatedRbtc(address[] calldata tokens, uint256[] calldat
 This is the only rBTC claim call on the manager. The manager has no single-pair claim function. The two arrays are positional pairs: `tokens[i]` is claimed only from `routeIndexes[i]`.
 
 - One pair: pass one-element arrays, for example `([DOC], [1])` for DOC on LayerBank.
-- Several pairs: pass one entry for each pair, for example `([DOC, USDT0], [0, 1])`.
+- Several pairs: pass one entry for each pair, for example `([DOC, DOC], [0, 1])` for both pairs of the initial launch.
+- Protocol example with a DEX token: `([DOC, USDT0], [0, 1])`. USDT0 is not enabled at the initial launch. While USDT0 on index 1 has no handler, the call skips that pair. It still pays the DOC pair when that pair has a balance.
 - The arrays must have the same length and must not be empty. Otherwise the call reverts with `DcaManager__ArraysLengthMismatch` or `DcaManager__EmptyWithdrawalArrays`.
 - A pair with no handler or with a zero balance is skipped.
 - The caller must accept native rBTC with empty calldata. If one payment fails, the whole call reverts and every accumulated balance stays in place.
@@ -92,6 +95,7 @@ From a handler:
 - `TokenHandler__TokenDeposited` and `TokenHandler__TokenWithdrawn`
 - `PurchaseRbtc__RbtcBought`, `PurchaseRbtc__SuccessfulRbtcBatchPurchase`, and `PurchaseFees__FeeCredited`
 - `PurchaseRbtc__rBtcWithdrawn`
+- On a DEX handler (USDRIF or USDT0, not enabled at the initial launch): `PurchaseUniswap__NewPathSet`, `PurchaseUniswap__PurchasePathAllowedSet`, `PurchaseUniswap__AmountOutMinimumPercentUpdated`, `PurchaseUniswap__AmountOutMinimumSafetyCheckUpdated`, and `PurchaseUniswap__OracleUpdated`.
 - On a LayerBank handler: `LendingHandler__UserSharesUpdated`, `LendingHandler__SharesRedeemed`, `LendingHandler__SharesRedeemedBatch`, `LendingHandler__WithdrawalAmountAdjusted`, and `LendingHandler__InterestWithdrawn`. A purchase emits one `LendingHandler__SharesRedeemedBatch` for the batch and no `LendingHandler__SharesRedeemed`. A user withdrawal or an interest withdrawal emits `LendingHandler__SharesRedeemed`.
 
 ### Event order
@@ -131,7 +135,7 @@ Purchase calls, examples:
 
 - `PurchaseRbtc__BelowSwapperMinimum(received, scaledMinimum)`
 - `PurchaseRbtc__ZeroQuotedStablecoinInput()` (selector `0x4e339109`)
-- `PurchaseUniswap__BelowOracleFloor(received, floor)` (selector `0x0f486c85`)
+- `PurchaseUniswap__BelowOracleFloor(received, floor)` (selector `0x0f486c85`), DEX handlers only
 - `PurchaseRbtc__InputAmountNotFullySpent`
 - `LendingHandler__ZeroShareValue`
 
@@ -146,3 +150,5 @@ The protected window can block an edit, a delete, a principal withdrawal, and an
 A delete returns principal. It does not claim interest, and it does not claim rBTC.
 
 Keep the exit calls available when your stored copy is missing or stale. Website data must not be required for a withdrawal, a delete, or an rBTC claim.
+
+The [offchain services page](/docs/contracts/offchain-services) describes how BitChill's own swapper, monitoring service, data API, and app follow these rules.

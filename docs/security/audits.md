@@ -14,7 +14,7 @@ The 2025 Ivan Fitro reports cover earlier contract versions. They are not a manu
 
 ## Before deployment
 
-The deployment script can deploy the manager, the registry, and the six launch handlers on Rootstock mainnet. That deployment waits for the planned audit. Until then, the address page has no protocol contract address.
+The initial launch needs the manager, the registry, and the two DOC handlers (idle and LayerBank) on Rootstock mainnet. That deployment waits for the planned audit. Until then, the address page has no protocol contract address. The USDRIF and USDT0 DEX handlers are in the same contract source. The initial launch does not enable them.
 
 ## Report a vulnerability
 

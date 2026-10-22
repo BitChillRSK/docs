@@ -44,17 +44,25 @@ flowchart TB
 
 A purchase has no guaranteed minute. A missed cadence slot is skipped. There is no catch-up. A purchase also needs the swapper, enough balance, and a schedule that is not purchase-paused. A deposit pause does not by itself stop a purchase. The purchase also needs liquidity, a passing price check, and a successful transaction.
 
-## Routes at launch
+## Initial launch: DOC only
 
-The deployment script assigns six handlers. Each handler serves one stablecoin on one route.
+:::info[Initial launch]
 
-| Stablecoin | Decimals | Routes at launch |
-| --- | --- | --- |
-| DOC | 18 | Idle (index 0), LayerBank (index 1) |
-| USDRIF | 18 | Idle (index 0), LayerBank (index 1) |
-| USDT0 | 6 | Idle (index 0), LayerBank (index 1) |
+The initial launch supports DOC only, on the idle route (index 0) and the LayerBank route (index 1). The USDRIF and USDT0 DEX handlers are implemented and tested. The initial launch does not enable them. A reviewed configuration can enable them when Rootstock DEX liquidity is deep enough for the execution-quality rules.
 
-Sovryn is not a launch route. Tropykus is not a route in this protocol. The [supported tokens page](/docs/getting-started/supported-assets#not-at-launch) explains route index 2 and the earlier BitChill deployment.
+:::
+
+## What the protocol implements
+
+Each handler serves one stablecoin on one route. The protocol source has these handlers:
+
+| Stablecoin | Decimals | Purchase venue | Routes in the protocol | Initial launch |
+| --- | --- | --- | --- | --- |
+| DOC | 18 | Money on Chain redemption | Idle (index 0), LayerBank (index 1), Sovryn (index 2) | Idle and LayerBank |
+| USDRIF | 18 | Uniswap V3 swap through USDT0 | Idle (index 0), LayerBank (index 1) | Not enabled |
+| USDT0 | 6 | Uniswap V3 swap | Idle (index 0), LayerBank (index 1) | Not enabled |
+
+All stablecoins share one manager, one registry, one schedule model, one fee formula, and one claim call. Only the purchase venue and the holding route differ by handler. Tropykus is not a route in this protocol. The [supported tokens page](/docs/getting-started/supported-assets#initial-launch-doc-only) explains the launch boundary, route index 2, and the earlier BitChill deployment.
 
 ## Security status
 
@@ -67,3 +75,4 @@ The 2025 Ivan Fitro reports cover earlier contract versions. Those reports are n
 1. [How a schedule runs](/docs/getting-started/how-dca-works)
 2. [Stablecoins and routes](/docs/getting-started/supported-assets)
 3. [Prepare a Rootstock wallet](/docs/user-guide/connect-wallet)
+4. [Contract architecture](/docs/contracts/architecture)

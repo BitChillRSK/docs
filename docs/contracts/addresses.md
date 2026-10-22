@@ -12,7 +12,7 @@ Rootstock mainnet is chain ID 30. Rootstock testnet is chain ID 31. Neither netw
 
 ## Existing Rootstock tokens
 
-A token address on this page is an existing Rootstock token. It is not a BitChill contract.
+A token address on this page is an existing Rootstock token. It is not a BitChill contract. The initial launch uses DOC. USDT0 and the two LayerBank receipts belong to the USDRIF and USDT0 handlers, which the initial launch does not enable.
 
 | Token | Address |
 | --- | --- |
@@ -24,15 +24,15 @@ USDT0 has 6 decimals. DOC and USDRIF have 18 decimals. This page does not publis
 
 ## Route index
 
-| Index | Meaning in the deployment script |
+| Index | Meaning |
 | --- | --- |
 | 0 | Idle. This route earns no lending yield. |
 | 1 | LayerBank, registered as a lending route |
 | 2 | Not registered at launch. The contract constants name it for Sovryn. |
 
-The six planned pairs are DOC idle, DOC LayerBank, USDRIF idle, USDRIF LayerBank, USDT0 idle, and USDT0 LayerBank. Sovryn is not a launch route. Tropykus is not a route. See [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
+The initial launch plans two pairs: DOC idle and DOC LayerBank. The protocol also implements USDRIF and USDT0 on idle and LayerBank. The initial launch does not enable those four pairs. Sovryn is not a launch route. Tropykus is not a route. See [Initial launch](/docs/getting-started/supported-assets#initial-launch-doc-only) and [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
 
-After a deployment exists, read the manager and the handler from that deployment record. These pages will name those contracts only when they are deployed.
+After a deployment exists, read the manager and the handler from that deployment record. Read the active pairs from the registry with `getHandler(token, routeIndex)`. These pages will name those contracts only when they are deployed.
 
 ## Read next
 
