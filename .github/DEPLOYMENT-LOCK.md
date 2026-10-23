@@ -15,7 +15,7 @@ The relaunch docs replace the published docs only as an owner release step. The 
 The owner does these steps before a reviewed change removes the lock:
 
 1. Merge and verify the deployment guard in every relaunch repository before any relaunch application change.
-2. Limit the `production` environment to the `main` branch, or remove the SSH deployment secrets, until the cutover. Older branches and tags still contain the old workflow, and GitHub can run it from those refs through the API.
+2. Remove the repository secrets `SSH_HOST`, `SSH_PRIVATE_KEY`, and `SSH_USER` before any relaunch application merge, and keep them removed until the cutover. No workflow on `main` uses them after this change. The old workflow stays in earlier runs and on older branches. GitHub can re-run an earlier run for 30 days with its original commit and ref (`main`), and the old script deploys the current `main`. A limit of the `production` environment to `main` alone does not stop such a re-run. A manual run of the old workflow from an older branch or tag is not documented by GitHub; treat it as possible. If v1 still needs an SSH deployment during the wind-down, use a control that also stops re-runs, for example required reviewers on `production` with the owner as the only reviewer. That control is not tested.
 3. Tag the deployed v1 head as `legacy-v1`, immediately before the cutover.
 4. Approve the archive location and publication plan for the v1 docs.
 5. Approve the relaunch target, its container and image names, and its routing labels, so that two containers cannot claim the docs domain.
