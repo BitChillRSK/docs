@@ -1,0 +1,34 @@
+name: Deployment lock (relaunch cutover)
+
+# Automatic production deployment is removed until the relaunch cutover.
+# This manual workflow explains and checks the cutover prerequisites, then fails.
+# It has no secrets, no environment, and no SSH, deploy, migration, or start step.
+# See .github/DEPLOYMENT-LOCK.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Full commit SHA of the selected ref that you intend to release
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  locked:
+    name: Deployment locked
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check cutover prerequisites
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: bash .github/scripts/deployment-lock.sh
