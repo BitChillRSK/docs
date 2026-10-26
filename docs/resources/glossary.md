@@ -86,7 +86,7 @@ A handler that buys through Uniswap V3. The protocol has DEX handlers for USDRIF
 
 ### Oracle floor
 
-The lowest output that a DEX handler accepts from a swap. It is a configured percentage of the output that the Money on Chain BTC/USD oracle implies.
+The lowest output that a DEX handler requires from a swap. It is a configured percentage of the output that the Money on Chain BTC/USD oracle implies. The handler passes it to the Uniswap V3 router as part of `amountOutMinimum`, and the router enforces it.
 
 ### Execution-quality rules
 
