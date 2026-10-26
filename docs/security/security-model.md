@@ -70,7 +70,7 @@ A purchase or a lending route depends on systems outside these contracts:
 
 The initial launch supports DOC only, on idle and LayerBank. Sovryn is not a launch route. Tropykus is not a route in this protocol. The idle route does not depend on a lending venue.
 
-A Money on Chain redemption uses the Money on Chain price. The DOC handler passes no minimum to Money on Chain and has no oracle floor, so the scaled batch minimum is its only output check. The BitChill swapper always sends a positive DOC minimum. A DEX handler purchase must reach an oracle floor and the scaled batch minimum. Its swap path must be on the handler's allowlist. A failed check reverts the purchase. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum) and [DEX handler settings](/docs/contracts/core-contracts#dex-handler-settings).
+A Money on Chain redemption uses the Money on Chain price. The DOC handler passes no minimum to Money on Chain and has no oracle floor, so the scaled batch minimum is its only output check. The BitChill swapper always sends a positive DOC minimum. A DEX handler gives the router the larger of the scaled batch minimum and an oracle floor as `amountOutMinimum`, so the router enforces the floor. The handler then checks the measured output against the scaled batch minimum. Its swap path must be on the handler's allowlist. A failed check reverts the purchase. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum) and [DEX handler settings](/docs/contracts/core-contracts#dex-handler-settings).
 
 ## Deployment shape
 

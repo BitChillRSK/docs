@@ -111,7 +111,7 @@ Each venue adds its own check:
 | Venue | Check in the handler |
 | --- | --- |
 | Money on Chain (DOC, initial launch) | The handler passes no minimum to Money on Chain and has no oracle floor. The scaled caller minimum is the only output check. |
-| Uniswap V3 (USDRIF, USDT0, DEX handlers not enabled at the initial launch) | The router gets the higher of the scaled minimum and an oracle floor. The handler also requires the measured WRBTC to reach the oracle floor. Otherwise it reverts with `PurchaseUniswap__BelowOracleFloor(received, floor)` (selector `0x0f486c85`). |
+| Uniswap V3 (USDRIF, USDT0, DEX handlers not enabled at the initial launch) | The handler gives the router the larger of the scaled caller minimum and the oracle floor as `amountOutMinimum`. The router enforces this value and reverts the swap when the output is lower. The handler does not compare the measured WRBTC with the oracle floor. The measured WRBTC must still reach the scaled caller minimum (`PurchaseRbtc__BelowSwapperMinimum`). |
 
 ## Money on Chain handler
 
@@ -152,7 +152,7 @@ function getMocOracle() external view returns (ICoinPairPrice);
 
 ### Oracle floor
 
-The floor is the lowest WRBTC output that the handler accepts:
+The floor is the lowest WRBTC output that the handler requires from the router:
 
 ```text
 floor = stablecoinAmount × 10^(18 − stablecoinDecimals) × amountOutMinimumPercent / btcUsdPrice
@@ -160,7 +160,7 @@ floor = stablecoinAmount × 10^(18 − stablecoinDecimals) × amountOutMinimumPe
 
 - `btcUsdPrice` comes from the Money on Chain BTC/USD oracle, with 18 decimals. The handler assumes that the stablecoin is worth one US dollar.
 - The oracle must report a valid price. Otherwise the purchase reverts with `PurchaseUniswap__OutdatedPrice`.
-- `amountOutMinimumPercent` is scaled to 1e18, so 1e18 is 100%. The router gets the higher of the floor and the scaled caller minimum. The measured WRBTC must also reach the floor.
+- `amountOutMinimumPercent` is scaled to 1e18, so 1e18 is 100%. The handler gives the router the larger of the scaled caller minimum and the floor as `amountOutMinimum`, so the router enforces the floor. The handler does not compare the measured WRBTC with the floor. It compares the measured WRBTC only with the scaled caller minimum.
 - The floor is a loose emergency bound. The swapper's per-batch minimum is the operational bound.
 - Bounds: the floor and the safety check are at most 100%, and the floor cannot be below the safety check. To lower the floor below the safety check, the owner first lowers the safety check in a separate transaction.
 - The contract repository's deployment configuration starts with a floor of 97% and a safety check of 95%. The owner can change both within the bounds.
