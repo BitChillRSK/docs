@@ -92,7 +92,7 @@ USDRIF and USDT0 use the same manager, registry, schedule rules, fee formula, an
 
 A DEX purchase must pass these checks:
 
-- In the handler: the measured WRBTC must reach the oracle floor and the swapper's scaled minimum.
+- In the handler: the router gets the larger of the swapper's minimum scaled to the actual input and the oracle floor as `amountOutMinimum`, so the router enforces the floor. The handler then checks that the measured WRBTC reaches the scaled minimum.
 - In the BitChill swapper: the quote must stay within the execution-quality tolerance against the handler's oracle reference, and within the price-impact limit against the pool price before the transaction.
 
 These rules protect the price that the buyer gets, and they need pool depth. Rootstock DEX liquidity on these paths is not yet deep enough for the execution-quality rules. The initial launch therefore does not enable the DEX tokens.

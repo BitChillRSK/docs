@@ -135,11 +135,10 @@ Purchase calls, examples:
 
 - `PurchaseRbtc__BelowSwapperMinimum(received, scaledMinimum)`
 - `PurchaseRbtc__ZeroQuotedStablecoinInput()` (selector `0x4e339109`)
-- `PurchaseUniswap__BelowOracleFloor(received, floor)` (selector `0x0f486c85`), DEX handlers only
 - `PurchaseRbtc__InputAmountNotFullySpent`
 - `LendingHandler__ZeroShareValue`
 
-The second argument of `PurchaseRbtc__BelowSwapperMinimum` is the minimum after scaling to the actual input. It can differ from the `minRbtcOut` value of the batch. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum).
+The second argument of `PurchaseRbtc__BelowSwapperMinimum` is the minimum after scaling to the actual input. It can differ from the `minRbtcOut` value of the batch. On a DEX handler, the router enforces the oracle floor as part of `amountOutMinimum`, so an output below the floor is a router revert, not a BitChill error. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum).
 
 ## Exit rules for a client
 
