@@ -28,9 +28,9 @@ USDT0 has 6 decimals. DOC and USDRIF have 18 decimals. This page does not publis
 | --- | --- |
 | 0 | Idle. This route earns no lending yield. |
 | 1 | LayerBank, registered as a lending route |
-| 2 | Not registered at launch. The contract constants name it for Sovryn. |
+| 2 | Unused. Not registered. The protocol does not reuse it for another venue. |
 
-The initial launch plans two pairs: DOC idle and DOC LayerBank. The protocol also implements USDRIF and USDT0 on idle and LayerBank. The initial launch does not enable those four pairs. Sovryn is not a launch route. Tropykus is not a route. See [Initial launch](/docs/getting-started/supported-assets#initial-launch-doc-only) and [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
+The initial launch plans two pairs: DOC idle and DOC LayerBank. The protocol also implements USDRIF and USDT0 on idle and LayerBank. The initial launch does not enable those four pairs. Sovryn and Tropykus are not routes in this protocol. See [Initial launch](/docs/getting-started/supported-assets#initial-launch-doc-only) and [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
 
 After a deployment exists, read the manager and the handler from that deployment record. Read the active pairs from the registry with `getHandler(token, routeIndex)`. These pages will name those contracts only when they are deployed.
 

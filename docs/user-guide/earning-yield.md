@@ -17,7 +17,7 @@ For a LayerBank route, the app shows an indicative supply APY. It comes from the
 | Idle | Held by the handler. No lending yield. |
 | LayerBank | Can be lent. At the initial launch, DOC has this route. The protocol also has LayerBank handlers for USDRIF and USDT0, which the initial launch does not enable. |
 
-Sovryn is not a launch route. Tropykus is not a route in this protocol.
+Sovryn and Tropykus are not routes in this protocol.
 
 A purchase spends the schedule's gross purchase amount. It does not spend a separate interest balance by itself. Interest on a lending route stays in the lending position until you withdraw it or credit it to a schedule.
 
@@ -34,6 +34,8 @@ A schedule pause does not block an interest withdrawal. A deposit pause does not
 ## Risk
 
 A lending route depends on that venue. The venue can change liquidity and the yield. LayerBank yield is not guaranteed. The yield is not a published BitChill rate. An idle route removes that lending exposure and also removes lending yield.
+
+If the venue cannot pay stablecoin, the contract has a fallback call that transfers LayerBank receipt tokens instead. It is a protocol function, not an ordinary exit. See [Withdraw lending shares](/docs/contracts/core-contracts#withdraw-lending-shares).
 
 ## Read next
 

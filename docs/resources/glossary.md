@@ -44,7 +44,15 @@ The `minRbtcOut` field of a purchase batch. It is the gross output minimum, befo
 
 ### Route
 
-The idle or lending destination for one stablecoin. Index 0 is idle. Index 1 is LayerBank. Index 2 is not registered at launch. The contract constants name it for Sovryn.
+The idle or lending destination for one stablecoin. Index 0 is idle. Index 1 is LayerBank. Index 2 is unused. It is not registered, and the protocol does not reuse it for another venue.
+
+### Lending shares
+
+The per-user record of a lending position in a handler. The unit is the receipt-share unit of the lending protocol. For LayerBank it is the scaled aToken amount. A share amount is not a stablecoin amount. Principal and interest are in the same shares.
+
+### Receipt token
+
+The token that a lending protocol gives for a deposit. For LayerBank it is the aToken. `withdrawLendingShares` transfers it to the caller as a fallback when a lending route cannot pay stablecoin. The holder redeems it at the lending protocol, on its conditions. See [Withdraw lending shares](/docs/contracts/core-contracts#withdraw-lending-shares).
 
 ### Initial launch
 
@@ -64,7 +72,7 @@ An owner flag for one stablecoin and one route. It blocks new deposits for that 
 
 ### Protected purchase window
 
-Five blocks opened by a swapper. During the window, selected edits, deletes, and stablecoin withdrawals are refused. An rBTC claim stays available.
+Five blocks opened by a swapper. During the window, selected edits, deletes, stablecoin withdrawals, and lending-share withdrawals are refused. An rBTC claim stays available.
 
 ## Contracts
 
@@ -126,7 +134,7 @@ The lending venue of route index 1. The initial launch uses it for DOC. The prot
 
 ### Sovryn
 
-Not a launch route. The contract source keeps a Sovryn lending adapter and a Sovryn DOC handler for possible future support. An earlier BitChill deployment used Sovryn. That history is not part of this protocol.
+Not a route in this protocol. The contract source keeps a test-only Sovryn adapter in `src/sovryn-legacy`, outside the deployment and the audit scope. An earlier BitChill deployment used Sovryn. That history is not part of this protocol.
 
 ### Money on Chain
 
