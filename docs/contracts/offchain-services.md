@@ -122,9 +122,9 @@ The data API stores the facts that the monitoring service posts. It does not rea
 - For interest actions, it reads `getAccruedInterest` on chain.
 - It shows the gross stablecoin cost and the buyer-net rBTC. It does not show a per-purchase fee row.
 - Existing schedules and exits stay visible for every pair that the manifest lists. A schedule that a lending-share withdrawal set to zero stays visible and can be funded again.
-- The lending-share withdrawal flow is behind a build flag that is off by default. With the flag off, the app shows no offer, no button, and no text about it. BitChill turns it on only if stablecoin withdrawals from a lending route become impossible, for example after an unexpected lending protocol upgrade. It then offers the call after a recognized lending-venue failure on a LayerBank pair. It simulates the call first. It explains that the user receives receipt tokens and redeems them at LayerBank on its conditions. It also explains that there is no guarantee of immediate stablecoin.
+- The lending-share withdrawal flow is behind a build flag that is off by default. With the flag off, the app shows no offer and no button. It still shows the shares that stay booked for the user on a token and route, because anyone can call the function outside the app. A failed read shows as unavailable, not as zero. BitChill turns it on only if stablecoin withdrawals from a lending route become impossible, for example after an unexpected lending protocol upgrade. It then offers the call after a recognized lending-venue failure on a LayerBank pair. It simulates the call first. It explains that the user receives receipt tokens and redeems them at LayerBank on its conditions. It also explains that there is no guarantee of immediate stablecoin.
 
-With the flag on, the app also reads the shares that stay booked after a call. It shows them and offers a later call for them. It resolves the LayerBank pair from on-chain reads, so a pair that the manifest omits can use the flow. This fallback is not the default exit.
+With the flag on, the app also offers a later call for the shares that stay booked after a call. It resolves the LayerBank pair from on-chain reads, so a pair that the manifest omits can use the flow. This fallback is not the default exit.
 
 ## Read next
 
