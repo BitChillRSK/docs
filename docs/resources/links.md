@@ -48,7 +48,7 @@ A PowPeg transfer is not a cost-free 1:1 conversion. Backing and an exchange pri
 | Uniswap | USDRIF and USDT0 purchases through the DEX handlers. The initial launch does not enable them. [uniswap.org](https://uniswap.org/) |
 | LayerBank | Lending route. DOC at the initial launch. [app.layerbank.finance](https://app.layerbank.finance/bank?chain=rootstock&network=rootstock) |
 
-The initial launch supports DOC only, on idle and LayerBank. Sovryn is not a launch venue. Tropykus is not a venue in this protocol. The idle route is not a lending venue.
+The initial launch supports DOC only, on idle and LayerBank. Sovryn and Tropykus are not venues in this protocol. The idle route is not a lending venue.
 
 ## Wallets
 

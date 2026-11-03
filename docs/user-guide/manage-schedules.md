@@ -36,6 +36,7 @@ A swapper can open a window of five blocks. From the activation block through th
 - a principal withdrawal
 - a principal-and-interest withdrawal
 - a bulk interest withdrawal
+- a lending-share withdrawal, the fallback call described in [Withdraw lending shares](/docs/contracts/core-contracts#withdraw-lending-shares)
 
 Those calls are available again on the fifth following block. An rBTC claim stays available during the window. A new deposit stays available during the window, unless a deposit pause applies to that token and route.
 
