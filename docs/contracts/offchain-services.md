@@ -49,7 +49,7 @@ The BitChill swapper is an allowlisted account that submits purchase batches. Th
 - For each configured stablecoin, it buys on every catalog route where the registry has a handler. A zero handler is skipped. A failed read omits that group and is reported. A later handler assignment needs configuration only.
 - At the initial launch, it is configured for DOC only. A DOC-only configuration needs no DEX path, no quoter, no WRBTC address, no execution-quality tolerance, and no price-impact limit.
 - It buys each schedule at most once in one run.
-- A lending-share withdrawal sets the schedule balances of a user to zero, and the data API can lag the chain. Before it prices a group, the swapper reads the schedule balances on chain again and drops each row that can no longer pay its purchase amount. It then sizes and quotes the remaining rows again, so the quoted pair matches the rows that it sends. If every row is dropped, it sends nothing for that group.
+- A lending-share withdrawal sets the schedule balances of a user to zero, and the data API can lag the chain. Before it prices a group, the swapper reads the schedule balances on chain and drops each row that can no longer pay its purchase amount. After it prices the group, it reads the priced rows again. If a row was dropped or its amount changed, it sizes and quotes the remaining rows again. It does the same when a DEX quote is close to its age limit. It repeats this at most three times. The quoted pair then matches the rows that it sends. If every row is dropped, it sends nothing for that group. A withdrawal after the last read is caught by the simulation.
 - It never buys on route index 2. A configuration that names a Sovryn target is rejected at start.
 
 ### Quoted pairs
@@ -122,7 +122,9 @@ The data API stores the facts that the monitoring service posts. It does not rea
 - For interest actions, it reads `getAccruedInterest` on chain.
 - It shows the gross stablecoin cost and the buyer-net rBTC. It does not show a per-purchase fee row.
 - Existing schedules and exits stay visible for every pair that the manifest lists. A schedule that a lending-share withdrawal set to zero stays visible and can be funded again.
-- The lending-share withdrawal flow is behind a build flag that is off by default. With the flag off, the app shows no offer, no button, and no text about it. BitChill turns it on only if stablecoin withdrawals from a lending route become impossible, for example after an unexpected lending protocol upgrade. It then offers the call only after a recognized lending-venue failure on a configured LayerBank pair, simulates the call first, and explains that the user receives receipt tokens, redeems them at LayerBank on its conditions, and has no guarantee of immediate stablecoin. This fallback is not the default exit.
+- The lending-share withdrawal flow is behind a build flag that is off by default. With the flag off, the app shows no offer, no button, and no text about it. BitChill turns it on only if stablecoin withdrawals from a lending route become impossible, for example after an unexpected lending protocol upgrade. It then offers the call after a recognized lending-venue failure on a LayerBank pair. It simulates the call first. It explains that the user receives receipt tokens and redeems them at LayerBank on its conditions. It also explains that there is no guarantee of immediate stablecoin.
+
+With the flag on, the app also reads the shares that stay booked after a call. It shows them and offers a later call for them. It resolves the LayerBank pair from on-chain reads, so a pair that the manifest omits can use the flow. This fallback is not the default exit.
 
 ## Read next
 
