@@ -34,7 +34,7 @@ A schedule is stored under the stablecoin and a decimal schedule id. The value h
 
 ## OperationsAdmin
 
-The registry maps a stablecoin and a route index to one handler. Index 0 is idle. The owner registers other indexes as idle or lending. The protocol uses index 1 for the LayerBank lending route. The contract constants name index 2 for Sovryn. The initial launch registers index 1 and does not register index 2.
+The registry maps a stablecoin and a route index to one handler. Index 0 is idle. The owner registers other indexes as idle or lending. The protocol uses index 1 for the LayerBank lending route. Index 2 stays unused: no live deployment script registers it, and the protocol does not reuse it for another venue. The initial launch registers index 1 only.
 
 The owner assigns a handler once for each pair. `assignHandler(token, routeIndex, handler)` reverts unless every check below passes:
 
@@ -49,7 +49,7 @@ The owner assigns a handler once for each pair. `assignHandler(token, routeIndex
 
 The owner can pause new deposits for one assigned pair. The owner keeps the swapper allowlist.
 
-A pair with no handler is not active. A create on it reverts. `getHandler(token, routeIndex)` returns the zero address for it. The deployment decides the active pairs, not the code: a later pair on the same registry needs a handler and an assignment, not a new manager. A pair on a route that is not registered, such as route 2 at launch, first needs `registerRoute(2, true)`.
+A pair with no handler is not active. A create on it reverts. `getHandler(token, routeIndex)` returns the zero address for it. The deployment decides the active pairs, not the code: a later pair on the same registry needs a handler and an assignment, not a new manager. A pair on a route that is not registered first needs the owner to register that route.
 
 ## Handlers
 
@@ -61,7 +61,6 @@ Each handler contract combines one holding base with one purchase venue:
 | --- | --- |
 | Idle | The handler holds the stablecoin. Each schedule balance in the manager is the liability. The handler balance is the pooled cover. |
 | LayerBank lending | The handler supplies the stablecoin to the LayerBank pool. A per-user share book stores scaled receipt-token amounts. |
-| Sovryn lending | The handler mints Sovryn iTokens. The same per-user share book stores the iToken amounts. |
 
 | Purchase venue | How a purchase buys rBTC |
 | --- | --- |
@@ -76,10 +75,8 @@ The protocol source has these production handler contracts:
 | `LayerBankDocHandlerMoc` | DOC | 1 | LayerBank lending | Money on Chain | Assigned |
 | `IdleHandlerDex` | USDRIF, USDT0 (one deployment each) | 0 | Idle | Uniswap V3 | Not assigned |
 | `LayerBankHandlerDex` | USDRIF, USDT0 (one deployment each) | 1 | LayerBank lending | Uniswap V3 | Not assigned |
-| `SovrynDocHandlerMoc` | DOC | 2 | Sovryn lending | Money on Chain | Not assigned. Route 2 is not registered. |
-| `SovrynHandlerDex` | A stablecoin that Sovryn lends | 2 | Sovryn lending | Uniswap V3 | Not assigned. Route 2 is not registered. |
 
-The DEX handlers are implemented and tested. The initial launch does not assign them. See [Enabling USDRIF and USDT0](/docs/getting-started/supported-assets#enabling-usdrif-and-usdt0). Tropykus is not a handler route in this protocol. The source keeps a test-only Tropykus adapter in `src/tropykus-legacy`. Only local and fork test lanes build it, and no production deployment uses it. An idle handler does not lend. See [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
+The DEX handlers are implemented and tested. The initial launch does not assign them. See [Enabling USDRIF and USDT0](/docs/getting-started/supported-assets#enabling-usdrif-and-usdt0). Sovryn and Tropykus are not handler routes in this protocol. The source keeps a test-only Sovryn adapter in `src/sovryn-legacy` and a test-only Tropykus adapter in `src/tropykus-legacy`. Both are outside the deployment and the audit scope. Only local and fork test lanes build them, and no production deployment uses them. The deploy scripts reject Sovryn on a live network and register no route 2. An idle handler does not lend. See [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
 
 ### Shared building blocks
 
@@ -87,7 +84,7 @@ The DEX handlers are implemented and tested. The initial launch does not assign 
 | --- | --- |
 | `TokenHandler` | Deposit and withdrawal of the stablecoin, manager-only. ERC-165 interface. |
 | `IdleHandler` | Holding base with no lending and no per-user book. |
-| `LendingHandler` | Per-user shares, share-to-stablecoin conversion, withdrawal clamp, interest, and the exact-sum batch redeem. A LayerBank or Sovryn adapter adds the venue calls. |
+| `LendingHandler` | Per-user shares, share-to-stablecoin conversion, withdrawal clamp, interest, and the exact-sum batch redeem. The LayerBank adapter adds the venue calls, including the receipt-token transfer for `withdrawShares`. Only the manager can call `withdrawShares`. |
 | `PurchaseRbtc` | The purchase pipeline: retrieve the stablecoin, scale the caller minimum, buy, check that the input was fully spent, split the output, and pay claims. |
 | `PurchaseFees` | The fee curve and the fee collector. |
 | `PurchaseMoc` | The Money on Chain venue. |
@@ -100,7 +97,7 @@ The DEX handlers are implemented and tested. The initial launch does not assign 
 
 | Caller | Allowed work |
 | --- | --- |
-| Schedule owner | Create, fund, edit, pause purchases, withdraw, delete, and claim for that account |
+| Schedule owner | Create, fund, edit, pause purchases, withdraw, delete, and claim for that account. On a lending route, a fallback call withdraws the lending shares as receipt tokens. |
 | Allowlisted swapper | Submit a purchase batch and open the protected purchase window |
 | Owner | Set routes, handlers, deposit pauses, swappers, fee parameters, token minimums, and schedule limits |
 
@@ -111,6 +108,10 @@ The swapper submits one or more due schedule ids for one stablecoin and one rout
 A batch carries a gross minimum output and the stablecoin input that the minimum was quoted for. The handler scales the minimum to the actual input and rounds up. If the measured gross output is below the scaled minimum, the purchase reverts. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum).
 
 The handler also checks that the venue took exactly the retrieved stablecoin. A partial spend reverts the batch with `PurchaseRbtc__InputAmountNotFullySpent`. A DEX handler also requires the router's balance of each intermediate token to end where it started.
+
+## Lending-share withdrawal
+
+A lending route can fail to pay stablecoin, for example after an unexpected upgrade of the lending protocol. `DcaManager.withdrawLendingShares(token, routeIndex)` is the fallback for that case. It clears the caller's schedule balances on one token and lending route, then calls `withdrawShares(user)` on the handler. The handler transfers the caller's receipt tokens to the caller, measures the fall in its own receipt-share balance, and debits the caller exactly that fall. It redeems no stablecoin. The call is blocked during a protected window and while the lending protocol blocks receipt-token transfers. The full entry is on the [core calls page](/docs/contracts/core-contracts#withdraw-lending-shares).
 
 ## Read next
 

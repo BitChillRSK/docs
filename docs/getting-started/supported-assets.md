@@ -41,7 +41,7 @@ rBTC is the native asset of Rootstock. A description of backing is not an exchan
 
 | Stablecoin | Decimals | Purchase venue | Handlers in the protocol | Initial launch |
 | --- | --- | --- | --- | --- |
-| DOC | 18 | Money on Chain | Idle, LayerBank, Sovryn | Enabled on idle and LayerBank |
+| DOC | 18 | Money on Chain | Idle, LayerBank | Enabled on idle and LayerBank |
 | USDRIF | 18 | Uniswap V3 | Idle, LayerBank | Implemented. Not enabled. |
 | USDT0 | 6 | Uniswap V3 | Idle, LayerBank | Implemented. Not enabled. |
 
@@ -61,9 +61,8 @@ Each pair is one stablecoin and one route. One handler contract serves one pair.
 | USDRIF | LayerBank | Lending is possible | Uniswap V3 | Not assigned |
 | USDT0 | Idle | None | Uniswap V3 | Not assigned |
 | USDT0 | LayerBank | Lending is possible | Uniswap V3 | Not assigned |
-| DOC | Sovryn | Lending is possible | Money on Chain | Not registered. See [Sovryn](#sovryn). |
 
-Tropykus is not a route in this protocol. The idle route earns no lending yield.
+Sovryn and Tropykus are not routes in this protocol. The idle route earns no lending yield.
 
 The route index in the contracts is a number:
 
@@ -71,7 +70,7 @@ The route index in the contracts is a number:
 | --- | --- | --- |
 | 0 | Idle | Registered. DOC handler assigned. |
 | 1 | LayerBank, a lending route | Registered as lending. DOC handler assigned. |
-| 2 | Sovryn, named in the contract constants | Not registered and not assigned. See [Not at launch](#not-at-launch). |
+| 2 | Unused | Not registered and not assigned. The protocol does not reuse it for another venue. See [Not at launch](#not-at-launch). |
 
 ## Purchase paths
 
@@ -110,11 +109,11 @@ When liquidity is deep enough, a reviewed configuration can enable a DEX token. 
 
 The DEX handlers for USDRIF and USDT0 are implemented and tested. The initial launch does not assign them. A create on a pair with no handler reverts, so no schedule can exist on that pair. A claim list or an interest list skips that pair. See [Enabling USDRIF and USDT0](#enabling-usdrif-and-usdt0).
 
-### Sovryn
+### Sovryn and Tropykus
 
-The contract source has a Sovryn lending adapter. It mints and burns Sovryn iTokens, and the shared lending base keeps the per-user share book. Two handler contracts use it: `SovrynDocHandlerMoc` for DOC with Money on Chain purchases, and `SovrynHandlerDex` for a stablecoin with Uniswap V3 purchases. The repository's deployment scripts build a Sovryn handler for DOC only. The contract constants name index 2 for Sovryn.
+Sovryn is not a route in this protocol. The contract source keeps a Sovryn lending adapter and a Tropykus lending adapter in `src/sovryn-legacy` and `src/tropykus-legacy`. Both are test-only. They are outside the deployment and outside the audit scope. Local and fork test lanes build them. The deploy scripts reject Sovryn on a live network, and no script registers route index 2 there.
 
-The initial launch does not register index 2 and does not assign a Sovryn handler. A create with route index 2 finds no handler and reverts. No schedule can exist on that route. A claim list or an interest list skips a pair with index 2. A Sovryn route can only come from a future reviewed deployment step. These pages describe it only as that possible future support.
+Route index 2 stays unused. A create with route index 2 finds no handler and reverts. No schedule can exist on that route. A claim list or an interest list skips a pair with index 2. The protocol does not reuse index 2 for another venue. These pages describe no Sovryn capability for this protocol and no Sovryn exit fee.
 
 ### Earlier BitChill deployment (historical)
 
@@ -122,7 +121,7 @@ An earlier BitChill deployment used Sovryn and Tropykus routes. Positions in tha
 
 ## Receipt tokens named for Rootstock
 
-These addresses are existing Rootstock tokens. They are not BitChill contracts. They are the LayerBank receipt tokens of the USDRIF and USDT0 LayerBank handlers, which the initial launch does not enable.
+These addresses are existing Rootstock tokens. They are not BitChill contracts. They are the LayerBank receipt tokens of the USDRIF and USDT0 LayerBank handlers, which the initial launch does not enable. A lending-share withdrawal would transfer this kind of token to the caller. See [Withdraw lending shares](/docs/contracts/core-contracts#withdraw-lending-shares).
 
 | Token | Address |
 | --- | --- |

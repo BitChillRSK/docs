@@ -28,7 +28,7 @@ flowchart LR
 
 ## Active pairs come from the deployment
 
-Each service knows the catalog: DOC, USDRIF, and USDT0, each on idle (index 0), LayerBank (index 1), and Sovryn (index 2). The active pairs come from the deployment, not from a fixed list in code:
+Each service knows the catalog: DOC, USDRIF, and USDT0, each on idle (index 0) and LayerBank (index 1). That is six pairs. Route index 2 is unused, and no service maps it to a venue. The active pairs come from the deployment, not from a fixed list in code:
 
 | Service | Source of the active pairs |
 | --- | --- |
@@ -49,6 +49,8 @@ The BitChill swapper is an allowlisted account that submits purchase batches. Th
 - For each configured stablecoin, it buys on every catalog route where the registry has a handler. A zero handler is skipped. A failed read omits that group and is reported. A later handler assignment needs configuration only.
 - At the initial launch, it is configured for DOC only. A DOC-only configuration needs no DEX path, no quoter, no WRBTC address, no execution-quality tolerance, and no price-impact limit.
 - It buys each schedule at most once in one run.
+- A lending-share withdrawal sets the schedule balances of a user to zero, and the data API can lag the chain. Before it prices a group, the swapper reads the schedule balances on chain and drops each row that can no longer pay its purchase amount. After it prices the group, it reads the priced rows again. If a row was dropped or its amount changed, it sizes and quotes the remaining rows again. It does the same when a DEX quote is close to its age limit. It repeats this at most three times. The quoted pair then matches the rows that it sends. If every row is dropped, it sends nothing for that group. A withdrawal after the last read is caught by the simulation.
+- It never buys on route index 2. A configuration that names a Sovryn target is rejected at start.
 
 ### Quoted pairs
 
@@ -97,6 +99,7 @@ The monitoring service turns contract logs into facts for the data API.
 - After several failed polls in a row, it sends one stall alert with a stable error code. It sends a recovered notice when a poll succeeds again.
 - It names a handler revert from the handler ABI and gives it a class, for example an invalid swapper payload, a result below the swapper minimum, a venue anomaly, or a lending error.
 - It alerts when the LayerBank pool or a LayerBank receipt-token proxy changes its implementation.
+- It indexes a lending-share withdrawal for any user, whether or not the user called from the BitChill app. It checks on chain that the receipt token in the event is the receipt token of the configured handler. It posts one receipt-share fact for the event and one principal-debit fact for each schedule that the call set to zero. A share withdrawal can clear no funded schedule, and it can leave a nonzero remainder. Neither stops ingestion. The receipt-share fact carries receipt-share units, not a stablecoin amount.
 
 ## Data API
 
@@ -105,7 +108,8 @@ The data API stores the facts that the monitoring service posts. It does not rea
 - It serves one deployment from a deployment manifest. The manifest gives the deployment id, the chain id, the manager, the registry, and each active stablecoin and route with its handler. The initial launch manifest lists DOC idle and DOC LayerBank.
 - A seed step registers the manifest rows. A later pair is appended to the same deployment. The values that identify a registered deployment stay fixed: the addresses, the token decimals, the handler of each route, and the route name and lending flag. A change to one of them, or a removed pair, is refused. The token minimum follows the configured manifest.
 - Each fact must come from the right contract: a schedule fact from the manager, a deposit-pause fact from the registry, and a purchase, fee, yield, or cash fact from a handler in the manifest.
-- Read routes are under `/api/v2/deployments/:deploymentId/`. They cover the deployment and pair metadata with the deposit-pause flag, schedules and due schedules, purchases, purchase batches, fee credits, interest and cash flows, and reporting totals.
+- Read routes are under `/api/v2/deployments/:deploymentId/`. They cover the deployment and pair metadata with the deposit-pause flag, schedules and due schedules, purchases, purchase batches, fee credits, interest and cash flows, lending-share withdrawals, and reporting totals.
+- It stores a lending-share withdrawal in a ledger of its own, in receipt-share units. The route `share-withdrawals` lists them with filters. The API does not add these units to stablecoin cash, yield, or purchase totals, and it gives no stablecoin value for them. The schedule principal follows the principal-debit facts.
 - The monitoring routes for facts, rollbacks, the cursor, and the block-hash checkpoints need a service token.
 - No public host is published. The app and the metrics dashboard reach selected read routes through their own server proxies.
 
@@ -117,7 +121,10 @@ The data API stores the facts that the monitoring service posts. It does not rea
 - For a LayerBank route, it shows an indicative supply APY from the LayerBank pool's current variable rate. The figure assumes that rate for one year with per-second compounding. It excludes incentive rewards. It is not guaranteed and it is not a BitChill rate. When the read fails, the app shows that the APY is not available.
 - For interest actions, it reads `getAccruedInterest` on chain.
 - It shows the gross stablecoin cost and the buyer-net rBTC. It does not show a per-purchase fee row.
-- Existing schedules and exits stay visible for every pair that the manifest lists.
+- Existing schedules and exits stay visible for every pair that the manifest lists. A schedule that a lending-share withdrawal set to zero stays visible and can be funded again.
+- The lending-share withdrawal flow is behind a build flag that is off by default. With the flag off, the app shows no offer and no button. It still shows the shares that stay booked for the user on a token and route, because anyone can call the function outside the app. A failed read shows as unavailable, not as zero. BitChill turns it on only if stablecoin withdrawals from a lending route become impossible, for example after an unexpected lending protocol upgrade. It then offers the call after a recognized lending-venue failure on a LayerBank pair. It simulates the call first. It explains that the user receives receipt tokens and redeems them at LayerBank on its conditions. It also explains that there is no guarantee of immediate stablecoin.
+
+With the flag on, the app also offers a later call for the shares that stay booked after a call. It resolves the LayerBank pair from on-chain reads, so a pair that the manifest omits can use the flow. This fallback is not the default exit.
 
 ## Read next
 
