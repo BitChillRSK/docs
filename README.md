@@ -10,7 +10,7 @@ These pages describe the new protocol. The protocol contracts are not deployed. 
 
 A schedule spends a gross stablecoin amount and buys rBTC. The purchase fee is taken in rBTC from the swap output. The user receives buyer-net rBTC. The idle route earns no lending yield.
 
-The pages describe the full protocol and mark the initial launch separately. The initial launch supports DOC only, on the idle route (index 0) and the LayerBank route (index 1). The USDRIF and USDT0 DEX handlers are implemented and tested. The initial launch does not enable them. A reviewed configuration can enable them when Rootstock DEX liquidity is deep enough for the execution-quality rules. LayerBank is the only lending route at launch. Sovryn is not a launch route. Tropykus is not a route.
+The pages describe the full protocol and mark the initial launch separately. The initial launch supports DOC only, on the idle route (index 0) and the LayerBank route (index 1). The USDRIF and USDT0 DEX handlers are implemented and tested. The initial launch does not enable them. A reviewed configuration can enable them when Rootstock DEX liquidity is deep enough for the execution-quality rules. LayerBank is the only lending route at launch. Sovryn and Tropykus are not routes in this protocol.
 
 ## Development
 

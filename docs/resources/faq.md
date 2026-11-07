@@ -14,7 +14,7 @@ The contracts in these pages are not deployed.
 
 ### Which stablecoins and routes does the initial launch support?
 
-The initial launch supports DOC only, on the idle route (index 0) and the LayerBank route (index 1). That is two stablecoin and route pairs. The idle route earns no lending yield. Sovryn is not a launch route. Tropykus is not a route.
+The initial launch supports DOC only, on the idle route (index 0) and the LayerBank route (index 1). That is two stablecoin and route pairs. The idle route earns no lending yield. Sovryn and Tropykus are not routes in this protocol.
 
 ### Does the protocol support other stablecoins?
 
@@ -70,11 +70,15 @@ Yes, up to the cap for that stablecoin. The deployment configuration uses a cap 
 
 It blocks purchases for that schedule. It does not block a withdrawal, a delete, an rBTC claim, or an edit. A deposit pause blocks new deposits for one token and one route, and it also leaves those exits open.
 
-The protected purchase window can block an edit, a delete, and some withdrawals for five blocks. An rBTC claim stays open. Website data never blocks your exit.
+The protected purchase window can block an edit, a delete, and some withdrawals for five blocks. This includes a lending-share withdrawal. An rBTC claim stays open. Website data never blocks your exit.
 
 ### What does delete return?
 
 A delete returns principal. It does not claim interest. It does not claim accumulated rBTC.
+
+### What if a lending route cannot pay stablecoin?
+
+A lending route depends on LayerBank. If a withdrawal of stablecoin from that route becomes impossible, for example after an unexpected upgrade of the lending protocol, the contract has a fallback call, `withdrawLendingShares`. BitChill enables it in its front end only in that case. It sets your schedule balances on that token and route to zero and sends you LayerBank receipt tokens for principal and interest together. You redeem them at LayerBank on its conditions. They do not guarantee immediate stablecoin. Calling it in any other case is not recommended. See [Withdraw lending shares](/docs/contracts/core-contracts#withdraw-lending-shares).
 
 ## Fees and yield
 

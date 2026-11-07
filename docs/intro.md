@@ -58,11 +58,11 @@ Each handler serves one stablecoin on one route. The protocol source has these h
 
 | Stablecoin | Decimals | Purchase venue | Routes in the protocol | Initial launch |
 | --- | --- | --- | --- | --- |
-| DOC | 18 | Money on Chain redemption | Idle (index 0), LayerBank (index 1), Sovryn (index 2) | Idle and LayerBank |
+| DOC | 18 | Money on Chain redemption | Idle (index 0), LayerBank (index 1) | Idle and LayerBank |
 | USDRIF | 18 | Uniswap V3 swap through USDT0 | Idle (index 0), LayerBank (index 1) | Not enabled |
 | USDT0 | 6 | Uniswap V3 swap | Idle (index 0), LayerBank (index 1) | Not enabled |
 
-All stablecoins share one manager, one registry, one schedule model, one fee formula, and one claim call. Only the purchase venue and the holding route differ by handler. Tropykus is not a route in this protocol. The [supported tokens page](/docs/getting-started/supported-assets#initial-launch-doc-only) explains the launch boundary, route index 2, and the earlier BitChill deployment.
+All stablecoins share one manager, one registry, one schedule model, one fee formula, and one claim call. Only the purchase venue and the holding route differ by handler. Sovryn and Tropykus are not routes in this protocol. Route index 2 stays unused. The [supported tokens page](/docs/getting-started/supported-assets#initial-launch-doc-only) explains the launch boundary, route index 2, and the earlier BitChill deployment.
 
 ## Security status
 

@@ -50,7 +50,7 @@ Purchased rBTC stays in the handler until you claim it. One handler serves one s
 | Idle | The handler holds it. It earns no lending yield. |
 | LayerBank | The handler can lend it. |
 
-The initial launch supports DOC only, on idle and LayerBank. Sovryn is not a launch route. See [Initial launch](/docs/getting-started/supported-assets#initial-launch-doc-only) and [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
+The initial launch supports DOC only, on idle and LayerBank. Sovryn is not a route in this protocol. See [Initial launch](/docs/getting-started/supported-assets#initial-launch-doc-only) and [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
 
 ## A principal example
 

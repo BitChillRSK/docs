@@ -15,6 +15,7 @@ You sign the calls that move your funds:
 - delete a schedule, which returns principal
 - claim rBTC
 - on a lending route, withdraw or credit interest
+- on a lending route, as a fallback, withdraw your lending shares as receipt tokens
 
 The manager stores the schedule. The handler holds the stablecoin and the rBTC. A claim pays rBTC when you request it. The purchase transaction does not force that payment.
 
@@ -31,7 +32,7 @@ Neither pause blocks a withdrawal, a delete, an rBTC claim, or an edit.
 
 ## Protected window
 
-A swapper can open a five-block window before a purchase batch. During that window the contract refuses an amount edit, a period edit, a pause edit, a delete, a principal withdrawal, and an interest withdrawal. An rBTC claim stays available. A deposit stays available unless that pair is deposit-paused.
+A swapper can open a five-block window before a purchase batch. During that window the contract refuses an amount edit, a period edit, a pause edit, a delete, a principal withdrawal, an interest withdrawal, and a lending-share withdrawal. An rBTC claim stays available. A deposit stays available unless that pair is deposit-paused.
 
 The window stops a user from changing the purchased state after the swapper has prepared the batch. It is not a pause of the exit forever. The blocked calls return after the window.
 
@@ -68,7 +69,9 @@ A purchase or a lending route depends on systems outside these contracts:
 - Rootstock block production and gas
 - Uniswap V3 and the Money on Chain BTC/USD oracle, for a USDRIF or USDT0 purchase through a DEX handler. The initial launch does not enable those handlers.
 
-The initial launch supports DOC only, on idle and LayerBank. Sovryn is not a launch route. Tropykus is not a route in this protocol. The idle route does not depend on a lending venue.
+The initial launch supports DOC only, on idle and LayerBank. Sovryn and Tropykus are not routes in this protocol. The idle route does not depend on a lending venue.
+
+A lending route can fail to pay stablecoin, for example after an unexpected upgrade of the lending protocol. The fallback call `withdrawLendingShares` moves the caller's receipt tokens to the caller's wallet and redeems no stablecoin. It gives no guarantee of a stablecoin payout. The holder redeems the receipt tokens at the lending protocol, on its conditions. The fallback does not help when the lending protocol blocks receipt-token transfers. On LayerBank, a paused reserve blocks the call and a frozen reserve does not. See [Withdraw lending shares](/docs/contracts/core-contracts#withdraw-lending-shares).
 
 A Money on Chain redemption uses the Money on Chain price. The DOC handler passes no minimum to Money on Chain and has no oracle floor, so the scaled batch minimum is its only output check. The BitChill swapper always sends a positive DOC minimum. A DEX handler gives the router the larger of the scaled batch minimum and an oracle floor as `amountOutMinimum`, so the router enforces the floor. The handler then checks the measured output against the scaled batch minimum. Its swap path must be on the handler's allowlist. A failed check reverts the purchase. See [Purchase minimum](/docs/contracts/core-contracts#purchase-minimum) and [DEX handler settings](/docs/contracts/core-contracts#dex-handler-settings).
 

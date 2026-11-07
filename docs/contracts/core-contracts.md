@@ -26,6 +26,7 @@ function withdrawToken(address token, uint64 scheduleId, uint256 withdrawalAmoun
 function withdrawTokenAndInterest(address token, uint64 scheduleId, uint256 withdrawalAmount) external;
 function topUpFromInterest(address token, uint64 scheduleId, uint256 amount) external;
 function withdrawAllAccumulatedInterest(address[] calldata tokens, uint256[] calldata routeIndexes) external;
+function withdrawLendingShares(address token, uint256 routeIndex) external;
 function withdrawAllAccumulatedRbtc(address[] calldata tokens, uint256[] calldata routeIndexes) external;
 ```
 
@@ -34,6 +35,45 @@ function withdrawAllAccumulatedRbtc(address[] calldata tokens, uint256[] calldat
 `withdrawTokenAndInterest` and `topUpFromInterest` are for a lending route. An idle schedule reverts those calls. `topUpFromInterest` adds lending interest to one schedule's principal. It does not move tokens out. A delete returns principal and does not claim interest or rBTC. Read accrued interest with `getAccruedInterest`. These pages do not publish an interest figure.
 
 A withdrawal amount of the maximum `uint256` value means the whole principal of that schedule.
+
+`withdrawLendingShares` is a fallback call for one lending route. It does not pay stablecoin. See [Withdraw lending shares](#withdraw-lending-shares).
+
+## Withdraw lending shares
+
+```solidity
+function withdrawLendingShares(address token, uint256 routeIndex) external;
+```
+
+**Purpose.** This call is a fallback. It is for the case where a withdrawal of stablecoin from a lending route becomes impossible, for example after an unexpected upgrade of the lending protocol. In that case BitChill enables it in its front end. Calling it in any other case, on a block explorer or elsewhere, is not recommended. The front end does not offer it by default.
+
+**Effect.** The call acts on one stablecoin and one lending route, for the whole position of the caller:
+
+- Every schedule balance that the caller holds on that token and route becomes zero. The schedules stay and can be funded again.
+- The caller's wallet receives the lending protocol's receipt token, not stablecoin. On LayerBank this is the aToken of the handler. The transfer covers principal and interest together. The contract does not split them.
+- No stablecoin is redeemed, and no stablecoin leaves the handler.
+
+**After the call.** The receipt tokens are in the caller's own wallet. The holder redeems them at LayerBank directly, on LayerBank's conditions, such as its liquidity and pauses. Holding receipt tokens does not guarantee immediate stablecoin. BitChill does not redeem them for the holder.
+
+**Remainder.** The handler debits the caller exactly the fall in its own receipt-share balance. Shares that the lending protocol does not transfer stay booked to the caller. A later call can request them. The schedules are cleared again on each call. Supported LayerBank rounding leaves zero or one scaled share. A lending protocol that transfers less than requested can leave more. A client must not assume that the booked shares end at zero.
+
+**When it is blocked.**
+
+- During a protected window. A window opened in block `N` blocks the call from block `N` through block `N + 4`, inclusive. The call is available from block `N + 5`, unless another window extends the restriction.
+- While the lending protocol blocks receipt-token transfers. On LayerBank, a paused reserve blocks the transfer and so blocks this call. A frozen reserve does not block it under the pinned implementation.
+
+**Reverts.**
+
+| Case | Error |
+| --- | --- |
+| The route is idle, or the route is not registered | `DcaManager__TokenIsNotLent(token)` |
+| The route is a lending route but has no handler for the token | `DcaManager__TokenNotAccepted(token, routeIndex)` |
+| The caller holds no shares in that handler | `LendingHandler__NoSharesToWithdraw(user)` |
+| The handler's receipt-share balance did not fall, or fell by more than the booked shares | `LendingHandler__ShareConsumptionMismatch` |
+| A protected window is active | `DcaManager__UserMutationsLocked(unlockBlock)` |
+
+A revert undoes the whole call, including the schedule balance changes.
+
+**Units.** A share amount is in receipt-share units of the lending protocol. For LayerBank this is the scaled aToken amount (`scaledBalanceOf`). It is not a stablecoin amount. A share amount does not give a stablecoin value without the current LayerBank index. The [integration notes](/docs/contracts/integration#lending-share-withdrawal) give the events and their order.
 
 ## Schedule record
 
@@ -92,7 +132,7 @@ The ABI type of `Batch` is `(uint64[],address,uint256,uint256,uint256)`. `quoted
 
 The manager reads the buyer and the gross purchase amount of each row from storage. It then calls the handler with `batchBuyRbtc(address[],uint64[],uint256[],uint256,uint256)` (selector `0x3f412b64`). Only the manager can call that handler function.
 
-The protected window lasts five blocks. During it, the contract refuses amount edits, period edits, pause edits, deletes, principal withdrawals, and interest withdrawals. An rBTC claim stays open. A deposit and a new schedule stay open.
+The protected window lasts five blocks. During it, the contract refuses amount edits, period edits, pause edits, deletes, principal withdrawals, interest withdrawals, and lending-share withdrawals. An rBTC claim stays open. A deposit and a new schedule stay open. A window opened in block `N` blocks these calls from block `N` through block `N + 4`, inclusive. They are available again from block `N + 5`, unless another window extends the restriction.
 
 ## Purchase minimum
 
