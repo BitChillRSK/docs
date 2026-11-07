@@ -34,9 +34,17 @@ The stablecoin amount the schedule spends on one purchase. The fee is not subtra
 
 The rBTC credited to the buyer after the purchase fee is taken from the measured rBTC output.
 
+### Quoted stablecoin input
+
+The `quotedStablecoinIn` field of a purchase batch. It is the gross stablecoin input that the swapper's quote used, in token base units.
+
+### Purchase minimum
+
+The `minRbtcOut` field of a purchase batch. It is the gross output minimum, before the purchase fee, for the quoted stablecoin input. The handler scales it to the actual input and rounds up.
+
 ### Route
 
-The idle or lending destination for one stablecoin. Index 0 is idle. Index 1 is LayerBank. Index 2 is Sovryn.
+The idle or lending destination for one stablecoin. Index 0 is idle. Index 1 is LayerBank. Index 2 is not registered at launch. The contract constants name it for Sovryn.
 
 ### Schedule pause
 
@@ -76,7 +84,7 @@ The native asset of Rootstock. Backing and an exchange price are different facts
 
 ### DOC
 
-A Money on Chain stablecoin with 18 decimals. This protocol pairs it with idle, LayerBank, and Sovryn.
+A Money on Chain stablecoin with 18 decimals. This protocol pairs it with idle and LayerBank.
 
 ### USDRIF
 
@@ -98,7 +106,7 @@ A lending venue for DOC, USDRIF, and USDT0 in this protocol.
 
 ### Sovryn
 
-A lending venue for DOC in this protocol.
+Not a launch route. The contract source keeps a Sovryn DOC handler for possible future support. An earlier BitChill deployment used Sovryn. That history is not part of this protocol.
 
 ### Money on Chain
 
@@ -114,4 +122,4 @@ The chain for this protocol. Chain ID 30 is mainnet. The protocol contracts are 
 
 ### Tropykus
 
-Tropykus is not a route in this protocol.
+Tropykus is not a route in this protocol. An earlier BitChill deployment used Tropykus.

@@ -27,10 +27,10 @@ USDT0 has 6 decimals. DOC and USDRIF have 18 decimals. This page does not publis
 | Index | Meaning in the deployment script |
 | --- | --- |
 | 0 | Idle. This route earns no lending yield. |
-| 1 | LayerBank |
-| 2 | Sovryn, for DOC |
+| 1 | LayerBank, registered as a lending route |
+| 2 | Not registered at launch. The contract constants name it for Sovryn. |
 
-The planned pairs are DOC idle, DOC LayerBank, DOC Sovryn, USDRIF idle, USDRIF LayerBank, USDT0 idle, and USDT0 LayerBank. Tropykus is not a route.
+The six planned pairs are DOC idle, DOC LayerBank, USDRIF idle, USDRIF LayerBank, USDT0 idle, and USDT0 LayerBank. Sovryn is not a launch route. Tropykus is not a route. See [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
 
 After a deployment exists, read the manager and the handler from that deployment record. These pages will name those contracts only when they are deployed.
 

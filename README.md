@@ -8,7 +8,7 @@ Documentation for the BitChill dollar-cost averaging protocol on Rootstock.
 
 These pages describe the new protocol. The protocol contracts are not deployed. No manual audit of this version is published. An audit is planned. The protocol is not deployed before that audit.
 
-A schedule spends a gross stablecoin amount and buys rBTC. The purchase fee is taken in rBTC from the swap output. The user receives buyer-net rBTC. The idle route earns no lending yield. Lending routes are LayerBank and, for DOC, Sovryn. Tropykus is not a route.
+A schedule spends a gross stablecoin amount and buys rBTC. The purchase fee is taken in rBTC from the swap output. The user receives buyer-net rBTC. The idle route earns no lending yield. The deployment script assigns six handlers: DOC, USDRIF, and USDT0, each on idle and on LayerBank. LayerBank is the only lending route. Sovryn is not a launch route. Tropykus is not a route.
 
 ## Development
 

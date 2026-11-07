@@ -13,7 +13,7 @@ The contracts that run this schedule are not deployed.
 A schedule stores these facts:
 
 - The stablecoin: DOC, USDRIF, or USDT0.
-- The route: idle, LayerBank, or Sovryn, for the pairs this protocol uses.
+- The route: idle or LayerBank. All three stablecoins have both routes at launch.
 - The deposit, which is principal the schedule can still spend or withdraw.
 - The purchase amount, in that stablecoin. This amount is the gross cost of one purchase.
 - The cadence, as a whole number of UTC days.
@@ -27,7 +27,7 @@ The cadence is a grid of UTC midnights. The cadence anchor is the UTC midnight o
 
 The first purchase is eligible on the creation UTC day once the swapper submits it. When it succeeds, it sets the anchor to the UTC midnight of that day. A later purchase becomes eligible at 00:00 UTC on the due day. The contract does not reserve a minute inside that day. If several due days pass before a purchase succeeds, the purchase consumes the newest due slot and skips the missed slots. There is no catch-up.
 
-A due day is not a completed purchase. The swapper must submit the transaction. The schedule must have enough principal for one purchase. A schedule pause blocks that purchase. Liquidity, a price check, and a successful transaction are also required.
+A due day is not a completed purchase. The swapper must submit the transaction. The schedule must have enough principal for one purchase. A schedule pause blocks that purchase. Liquidity, a price check, and a successful transaction are also required. The swapper can also leave a due purchase for a later run, for example when its quote fails or a size limit applies. If it waits past the next due day, the later purchase consumes only the newest due slot.
 
 ## One purchase
 
@@ -49,7 +49,8 @@ Purchased rBTC stays in the handler until you claim it. One handler serves one s
 | --- | --- |
 | Idle | The handler holds it. It earns no lending yield. |
 | LayerBank | The handler can lend it. |
-| Sovryn | The handler can lend it. Sovryn is a DOC route only. |
+
+Sovryn is not a launch route. See [Not at launch](/docs/getting-started/supported-assets#not-at-launch).
 
 ## A principal example
 

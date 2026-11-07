@@ -14,13 +14,13 @@ The contracts in these pages are not deployed.
 
 ### Which stablecoins and routes does this protocol use?
 
-| Stablecoin | Decimals | Routes |
+| Stablecoin | Decimals | Routes at launch |
 | --- | --- | --- |
-| DOC | 18 | Idle, LayerBank, Sovryn |
+| DOC | 18 | Idle, LayerBank |
 | USDRIF | 18 | Idle, LayerBank |
 | USDT0 | 6 | Idle, LayerBank |
 
-Tropykus is not a route. The idle route earns no lending yield. The route table is on the [supported tokens page](/docs/getting-started/supported-assets).
+That is six stablecoin and route pairs. Sovryn is not a launch route. Tropykus is not a route. The idle route earns no lending yield. The route table is on the [supported tokens page](/docs/getting-started/supported-assets).
 
 ### Is this version audited?
 
@@ -72,7 +72,7 @@ The owner configures the fee. These pages do not state a live percentage. The sc
 
 ### What yield do I earn?
 
-The idle route earns no lending yield. A LayerBank or Sovryn route can lend the waiting stablecoin. An accrued-interest figure is not available. The offchain system does not store an accrued-interest quote. These pages do not publish a live APY.
+The idle route earns no lending yield. A LayerBank route can lend the waiting stablecoin. LayerBank yield is not guaranteed. An accrued-interest figure is not available. The offchain system does not store an accrued-interest quote. These pages do not publish a live APY.
 
 ### Who pays gas for a purchase?
 
@@ -82,7 +82,7 @@ The swapper submits the purchase transaction and pays that gas. You pay gas for 
 
 ### How do I claim rBTC?
 
-Call `withdrawAccumulatedRbtc` for one token and route, or `withdrawAllAccumulatedRbtc` for several pairs. The balance is per account, token, and route. A claim does not delete the schedule. A delete does not claim the rBTC.
+Call `withdrawAllAccumulatedRbtc` with a list of stablecoins and a matching list of route indexes. For one pair, send one entry in each list. For several pairs, send one entry for each pair. The balance is per account, token, and route. A claim does not delete the schedule. A delete does not claim the rBTC.
 
 ### Is rBTC the same as BTC with no cost?
 
