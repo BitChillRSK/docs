@@ -2,149 +2,93 @@
 sidebar_position: 1
 ---
 
-# Frequently Asked Questions
+# Frequently asked questions
 
 ## General
 
 ### What is BitChill?
 
-BitChill is a decentralized DCA (Dollar Cost Averaging) protocol on Rootstock that lets you automatically accumulate Bitcoin (rBTC) by depositing stablecoins. Your funds earn yield while waiting to be converted.
+BitChill is a dollar-cost averaging protocol on Rootstock. You deposit a stablecoin on a schedule. A swapper can buy rBTC for you on a UTC-day cadence. rBTC is the native asset of Rootstock.
 
-### Why should I use BitChill instead of manual DCA?
+The contracts in these pages are not deployed.
 
-- **Automation**: No need to remember to buy each week
-- **Yield**: Your stablecoins earn interest while waiting
-- **Non-custodial**: You keep control of your funds
-- **Transparent**: Everything happens on-chain
+### Which stablecoins and routes does this protocol use?
 
-### Is BitChill safe to use?
+| Stablecoin | Decimals | Routes |
+| --- | --- | --- |
+| DOC | 18 | Idle, LayerBank, Sovryn |
+| USDRIF | 18 | Idle, LayerBank |
+| USDT0 | 6 | Idle, LayerBank |
 
-BitChill contracts are open source and have been audited twice by independent security researchers. However, as with any DeFi protocol, there are inherent risks. See our [Security Model](/docs/security/security-model) for details.
+Tropykus is not a route. The idle route earns no lending yield. The route table is on the [supported tokens page](/docs/getting-started/supported-assets).
 
-## Supported Assets
+### Is this version audited?
 
-### Which tokens can I use?
+No manual audit of this version is published. The 2025 Ivan Fitro reports cover earlier contract versions. An audit is planned. The protocol is not deployed before that audit. See [Audit status](/docs/security/audits).
 
-Current mainnet deployment supports:
+### Where are the contracts?
 
-- **DOC** (Dollar on Chain)
-- **USDRIF**
+The protocol contracts are not deployed. The [address page](/docs/contracts/addresses) does not list a manager, a registry, a handler, a swapper, or a fee collector.
 
-See the [active handler matrix](/docs/getting-started/supported-assets#active-handler-matrix).
+## Schedules
 
-### Which lending protocols are integrated?
+### How often can a purchase run?
 
-| Stablecoin | Available Lending Protocols |
-|------------|----------------------------|
-| DOC | Sovryn (active), Tropykus (legacy) |
-| USDRIF | Tropykus (legacy) |
+The cadence is a whole number of UTC days, measured from the cadence anchor. The anchor is a UTC midnight, or zero before the first purchase. It is not the purchase time. The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day. There is no guaranteed minute. Missed slots are skipped. There is no catch-up.
 
-### How do I get DOC or USDRIF?
+The deployment script uses a minimum of 7 days. The owner can change the minimum. The contract does not allow a minimum below one UTC day.
 
-- **DOC**: Mint at [Money on Chain](https://app.moneyonchain.com) or swap on [Sovryn](https://sovryn.app)
-- **USDRIF**: Acquire through the RIF ecosystem or swap on Rootstock DEXes
+### What else does a purchase need?
 
-## Using BitChill
+A purchase needs an allowlisted swapper, enough principal for the gross amount, no schedule pause, liquidity, a passing price check, and a successful transaction. A deposit pause does not by itself stop a purchase.
 
-### How often can purchases run?
+### What is the minimum purchase?
 
-The app offers three presets:
-- Weekly (every 1 week)
-- Bi-weekly (every 2 weeks)
-- Monthly (every 4 weeks)
+The owner sets a minimum for each stablecoin. The deployment script uses 25 whole tokens, in that token's decimals. USDT0 has 6 decimals. DOC and USDRIF have 18 decimals. There is no live minimum, because the contracts are not deployed.
 
-The contract enforces a configurable minimum period in seconds.
+The purchase amount also cannot exceed the schedule principal.
 
-### What is the minimum purchase amount?
+### Can I hold more than one schedule?
 
-The minimum is configurable per token by the protocol owner. Check the current value with `getTokenMinPurchaseAmount(token)`.
+Yes, up to the cap for that stablecoin. The deployment script uses a cap of 10. Each schedule has its own id, balance, amount, cadence, and route. rBTC for the same token and route is stored in one handler.
 
-Additionally, your purchase amount must satisfy: `purchaseAmount <= balance / 2`
+### What does a schedule pause do?
 
-### Can I have multiple schedules?
+It blocks purchases for that schedule. It does not block a withdrawal, a delete, an rBTC claim, or an edit. A deposit pause blocks new deposits for one token and one route, and it also leaves those exits open.
 
-Yes! You can have up to `maxSchedulesPerToken` schedules for each token. This lets you run different strategies simultaneously.
+The protected purchase window can block an edit, a delete, and some withdrawals for five blocks. An rBTC claim stays open. Website data never blocks your exit.
 
-### Can I modify my schedule after creating it?
+### What does delete return?
 
-Yes, you can:
-- Add more funds (top up)
-- Withdraw partial funds
-- Update purchase amount (within validation rules)
-- Update purchase period
-- Delete the schedule entirely
+A delete returns principal. It does not claim interest. It does not claim accumulated rBTC.
 
-### What happens when my schedule runs out of funds?
+## Fees and yield
 
-Purchases simply stop until you add more funds. Your schedule remains active and will resume once you deposit more stablecoins.
+### How is the fee charged?
 
-## Yield & Interest
+You spend the gross stablecoin amount. The venue receives that stablecoin. The fee is taken in rBTC from the swap output. You receive the buyer-net rBTC. The fee is not taken from the stablecoin before the purchase.
 
-### How do I earn yield?
+The owner configures the fee. These pages do not state a live percentage. The screen shows the gross cost and the buyer-net rBTC. The screen does not show an exact fee row.
 
-Your stablecoins are automatically deposited into the lending protocol selected by your handler. New schedules use Sovryn; legacy schedules may still point to Tropykus. You earn interest on your full balance (funds waiting to be swapped).
+### What yield do I earn?
 
-### How do I withdraw my interest?
+The idle route earns no lending yield. A LayerBank or Sovryn route can lend the waiting stablecoin. An accrued-interest figure is not available. The offchain system does not store an accrued-interest quote. These pages do not publish a live APY.
 
-Interest is tracked separately from your principal. Use these functions:
-- `withdrawAllAccumulatedInterest`: Get interest from all handlers
-- `withdrawTokenAndInterest`: Withdraw both principal and interest
+### Who pays gas for a purchase?
 
-**Important**: Deleting a schedule or withdrawing tokens does NOT automatically include interest.
+The swapper submits the purchase transaction and pays that gas. You pay gas for a transaction you send.
 
-### What APY can I expect?
+## rBTC
 
-Yields vary based on market conditions and lending protocol utilization. Check current rates on [Sovryn](https://sovryn.app).
+### How do I claim rBTC?
 
-## Fees
+Call `withdrawAccumulatedRbtc` for one token and route, or `withdrawAllAccumulatedRbtc` for several pairs. The balance is per account, token, and route. A claim does not delete the schedule. A delete does not claim the rBTC.
 
-### What fees does BitChill charge?
+### Is rBTC the same as BTC with no cost?
 
-BitChill uses a configurable fee model that can be:
-- **Flat**: Same percentage regardless of purchase amount
-- **Sliding scale**: Lower fees for larger purchases
+rBTC is the Rootstock native asset. Backing and an exchange price are different facts. A conversion is not a promise of a cost-free 1:1 exchange.
 
-Current defaults are set by the protocol owner. Fees are deducted from each purchase before swapping.
+## Read next
 
-### Who pays gas for automated purchases?
-
-The BitChill swapper infrastructure pays gas for automated purchase execution. You only pay gas for your own transactions (creating schedules, withdrawing, etc.).
-
-## Withdrawals
-
-### How do I withdraw my rBTC?
-
-BitChill uses a "pull" pattern. Your purchased rBTC accumulates in handler contracts until you withdraw:
-
-- **Single handler**: `withdrawRbtcFromTokenHandler`
-- **All handlers**: `withdrawAllAccumulatedRbtc`
-
-### Is rBTC tracked per schedule?
-
-**No.** rBTC is tracked per user per handler (token + lending protocol combination). If you have multiple DOC+Sovryn schedules, the rBTC accumulates together.
-
-### Do I need to delete my schedule to withdraw?
-
-No! You can withdraw rBTC at any time without affecting your active schedules.
-
-## Technical & Security
-
-### Are the contracts upgradeable?
-
-Core BitChill contracts are **not** proxy-upgradeable. New features are introduced through new deployments and handler registrations.
-
-### Where are the contracts deployed?
-
-See [Contract Addresses](/docs/contracts/addresses) for the full list.
-
-### Where can I review the audits?
-
-Audit reports are publicly available: [Audit Reports](/docs/security/audits)
-
-### I found a bug. How do I report it?
-
-For security issues, please report privately via:
-- Twitter: [@BitChillApp](https://x.com/BitChillApp)
-
-For non-sensitive issues:
-- [GitHub Issues](https://github.com/BitChillRSK/dca-contracts/issues)
+- [Security model](/docs/security/security-model)
+- [Fees](/docs/user-guide/fees)

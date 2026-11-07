@@ -2,151 +2,103 @@
 sidebar_position: 4
 ---
 
-# Integration Guide
+# Integration notes
 
-Use `DcaManager` for schedule lifecycle and handler-specific contracts for per-handler accumulated rBTC reads.
+The protocol contracts are not deployed. Do not point an integration at an older manager, registry, handler, swapper, or fee collector.
 
-## Core Addresses (Mainnet)
+Build the call against the signatures below. Supply the manager address only after a deployment publishes it.
 
-- DcaManager: `0x4d9cbe0f242EE85F7Fa25C77329749381bA998be`
-- OperationsAdmin: `0x942B18A5f78eD612635b6E5FbC49159B5a955f59`
+## Read a schedule
 
-## Read Examples
+The key is the stablecoin and the decimal schedule id.
 
-### 1. Read user schedules
-
-```ts
-import { ethers } from 'ethers';
-
-const dcaManager = new ethers.Contract(
-  '0x4d9cbe0f242EE85F7Fa25C77329749381bA998be',
-  [
-    'function getDcaSchedules(address user, address token) view returns ((uint256 tokenBalance,uint256 purchaseAmount,uint256 purchasePeriod,uint256 lastPurchaseTimestamp,bytes32 scheduleId,uint256 lendingProtocolIndex)[])'
-  ],
-  provider
+```solidity
+function getDcaSchedule(address token, uint64 scheduleId) external view returns (
+    uint128 tokenBalance,
+    uint48 cadenceAnchor,
+    bool paused,
+    uint32 purchasePeriod,
+    uint32 routeIndex,
+    address user,
+    uint96 purchaseAmount
 );
-
-const schedules = await dcaManager.getDcaSchedules(userAddress, docTokenAddress);
 ```
 
-### 2. Read accrued interest for token + lending protocol
+`getDcaSchedules(user, token)` returns two arrays. `scheduleIds[i]` matches `schedules[i]`. Store the id. A later delete can change the list order.
 
-```ts
-const dcaManager = new ethers.Contract(
-  DCA_MANAGER,
-  ['function getInterestAccrued(address user, address token, uint256 lendingProtocolIndex) view returns (uint256)'],
-  provider
-);
+`cadenceAnchor` is a UTC midnight after the first purchase, or zero before it. It is not the purchase timestamp. The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day. Missed slots are skipped. There is no catch-up.
 
-const interest = await dcaManager.getInterestAccrued(userAddress, docTokenAddress, 2n);
+## Read buyer-net rBTC
+
+```solidity
+function getAccumulatedRbtcBalance(address user, address token, uint256 routeIndex) external view returns (uint256);
 ```
 
-### 3. Read accumulated rBTC in a specific handler
+The unit is wei of rBTC. The balance is for that account, token, and route.
 
-`DcaManager` does not expose a direct `getAccumulatedRbtcBalance` view. Read from the handler contract:
+An accrued-interest figure is not available. Do not store or display an accrued-interest quote from an offchain cache. Do not publish a live APY.
 
-```ts
-const handler = new ethers.Contract(
-  sovrynDocHandlerAddress,
-  ['function getAccumulatedRbtcBalance(address user) view returns (uint256)'],
-  provider
-);
+## Create
 
-const accumulated = await handler.getAccumulatedRbtcBalance(userAddress);
+```solidity
+function createDcaSchedule(
+    address token,
+    uint256 depositAmount,
+    uint256 purchaseAmount,
+    uint256 purchasePeriod,
+    uint256 routeIndex
+) external;
 ```
 
-## Write Examples
+`purchasePeriod` is a whole number of UTC days, in seconds. `purchaseAmount` is the gross stablecoin amount and cannot exceed the deposit. Approve the handler for that token and route, for the full deposit. The handler pulls the deposit. The handler address comes from the deployment record after deployment. The protocol is not deployed, so this page does not publish a handler address.
 
-### 1. Create schedule
+Route indexes in the deployment script are 0 for idle, 1 for LayerBank, and 2 for Sovryn. Use a pair from the route table. Tropykus is not a route.
 
-```ts
-const dcaManager = new ethers.Contract(
-  DCA_MANAGER,
-  ['function createDcaSchedule(address token,uint256 depositAmount,uint256 purchaseAmount,uint256 purchasePeriod,uint256 lendingProtocolIndex)'],
-  signer
-);
+## Claim rBTC
 
-const token = new ethers.Contract(docTokenAddress, ['function approve(address,uint256) returns (bool)'], signer);
-await (await token.approve(DCA_MANAGER, depositAmount)).wait();
-
-await (
-  await dcaManager.createDcaSchedule(
-    docTokenAddress,
-    depositAmount,
-    purchaseAmount,
-    604800n, // 1 week preset (frontend choice)
-    2n       // Sovryn
-  )
-).wait();
+```solidity
+function withdrawAccumulatedRbtc(address token, uint256 routeIndex) external;
+function withdrawAllAccumulatedRbtc(address[] calldata tokens, uint256[] calldata routeIndexes) external;
 ```
 
-### 2. Add funds to existing schedule
+The two arrays are pairs. A zero handler or a zero balance is skipped in the batch call.
 
-```ts
-const dcaManager = new ethers.Contract(
-  DCA_MANAGER,
-  ['function depositToken(address token,uint256 scheduleIndex,bytes32 scheduleId,uint256 depositAmount)'],
-  signer
-);
+## Events to follow
 
-await (await token.approve(DCA_MANAGER, amount)).wait();
-await (await dcaManager.depositToken(docTokenAddress, scheduleIndex, scheduleId, amount)).wait();
-```
-
-### 3. Withdraw rBTC from one handler
-
-```ts
-const dcaManager = new ethers.Contract(
-  DCA_MANAGER,
-  ['function withdrawRbtcFromTokenHandler(address token,uint256 lendingProtocolIndex)'],
-  signer
-);
-
-await (await dcaManager.withdrawRbtcFromTokenHandler(docTokenAddress, 2n)).wait();
-```
-
-### 4. Withdraw rBTC across multiple handlers
-
-```ts
-await (
-  await dcaManager.withdrawAllAccumulatedRbtc(
-    [docTokenAddress, usdrifTokenAddress],
-    [2n, 1n] // Sovryn DOC + legacy USDRIF handler
-  )
-).wait();
-```
-
-## Events to Index
-
-From `DcaManager`:
+From the manager:
 
 - `DcaManager__DcaScheduleCreated`
-- `DcaManager__DcaScheduleUpdated`
-- `DcaManager__DcaScheduleDeleted`
 - `DcaManager__TokenBalanceUpdated`
-- `DcaManager__LastPurchaseTimestampUpdated`
+- `DcaManager__PurchaseAmountUpdated`
+- `DcaManager__PurchasePeriodUpdated`
+- `DcaManager__SchedulePauseSet`
+- `DcaManager__DcaScheduleDeleted`
+- `DcaManager__ProtectedPurchaseWindowActivated`
 
-From handlers:
+The created, deleted, and balance events include the token and the decimal schedule id. The pause event includes the user and the schedule id.
 
-- `PurchaseRbtc__RbtcBought`
-- `PurchaseRbtc__SuccessfulRbtcBatchPurchase`
-- `PurchaseRbtc__rBtcWithdrawn`
-- lending events from `ITokenLending` when tracking interest/redemptions
-
-## Common Reverts (DcaManager)
+## Checks that revert
 
 Examples:
 
-- `DcaManager__ScheduleIdAndIndexMismatch`
-- `DcaManager__InexistentScheduleIndex`
-- `DcaManager__PurchaseAmountMustBeGreaterThanMinimum`
-- `DcaManager__PurchaseAmountMustBeLowerThanHalfOfBalance`
+- `DcaManager__InexistentSchedule`
+- `DcaManager__NotScheduleOwner`
+- `DcaManager__ScheduleIdIndexMismatch`
+- `DcaManager__DepositsPaused`
+- `DcaManager__SchedulePaused`
+- `DcaManager__PurchaseAmountExceedsBalance`
+- `DcaManager__PurchasePeriodMustBeWholeDays`
 - `DcaManager__CannotBuyIfPurchasePeriodHasNotElapsed`
+- `DcaManager__ScheduleBalanceNotEnoughForPurchase`
+- `DcaManager__UserMutationsLocked`
 - `DcaManager__TokenNotAccepted`
 
-## Integration Tips
+## Exit rules for a client
 
-1. Persist `scheduleId` from reads/events; do not rely only on index.
-2. Treat handler as the source of truth for accumulated rBTC balance reads.
-3. Keep token/lending-protocol matrices explicit in your backend to avoid wrong handler assumptions.
-4. Decode custom errors in client/backend logs for actionable diagnostics.
+A schedule pause blocks purchases for that schedule. A deposit pause blocks new deposits for one token and one route. Neither pause blocks a withdrawal, a delete, an rBTC claim, or an edit.
+
+The protected window can block an edit, a delete, a principal withdrawal, and an interest withdrawal for five blocks. It does not block an rBTC claim.
+
+A delete returns principal. It does not claim interest, and it does not claim rBTC.
+
+Keep the exit calls available when your stored copy is missing or stale. Website data must not be required for a withdrawal, a delete, or an rBTC claim.

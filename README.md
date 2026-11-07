@@ -1,18 +1,14 @@
-# BitChill Documentation
+# BitChill documentation
 
-Official documentation for the BitChill DCA protocol on Rootstock.
+Documentation for the BitChill dollar-cost averaging protocol on Rootstock.
 
-**Live Site**: [docs.bitchill.app](https://docs.bitchill.app)
+**Site**: [docs.bitchill.app](https://docs.bitchill.app)
 
-## About BitChill
+## About this draft
 
-BitChill is a decentralized Dollar Cost Averaging (DCA) protocol built on Rootstock that enables users to automatically accumulate Bitcoin (rBTC) by depositing stablecoins and executing periodic purchases.
+These pages describe the new protocol. The protocol contracts are not deployed. No manual audit of this version is published. An audit is planned. The protocol is not deployed before that audit.
 
-Key features:
-- **Automated DCA**: Set your schedule once and let BitChill handle the rest
-- **Yield Earning**: Stablecoins earn yield in Tropykus/Sovryn while waiting
-- **Non-Custodial**: Full control of your funds at all times
-- **Audited**: Independent security audits completed
+A schedule spends a gross stablecoin amount and buys rBTC. The purchase fee is taken in rBTC from the swap output. The user receives buyer-net rBTC. The idle route earns no lending yield. Lending routes are LayerBank and, for DOC, Sovryn. Tropykus is not a route.
 
 ## Development
 
@@ -24,16 +20,16 @@ Key features:
 ### Installation
 
 ```bash
-npm install
+npm ci
 ```
 
-### Local Development
+### Local preview
 
 ```bash
 npm start
 ```
 
-This starts a local development server at `http://localhost:3000`. Most changes are reflected live without needing to restart.
+The local server uses port 3000.
 
 ### Build
 
@@ -41,33 +37,25 @@ This starts a local development server at `http://localhost:3000`. Most changes 
 npm run build
 ```
 
-Generates static content in the `build` directory for deployment.
+The static site is written to `build`. Do not run the deploy script for this draft.
 
-## Documentation Structure
+## Page map
 
-```
+```text
 docs/
-├── intro.md                    # What is BitChill?
-├── getting-started/            # How DCA works, supported assets
-├── user-guide/                 # Connect wallet, create schedules, etc.
-├── contracts/                  # Smart contract architecture & addresses
-├── security/                   # Audit reports & security model
-└── resources/                  # FAQ, glossary, links
+├── intro.md
+├── getting-started/
+├── user-guide/
+├── contracts/
+├── security/
+└── resources/
 ```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
 
 ## Links
 
-- **Website**: [bitchill.app](https://bitchill.app)
-- **App**: [dca.bitchill.app](https://dca.bitchill.app)
-- **GitHub**: [BitChillRSK](https://github.com/BitChillRSK)
-- **Twitter**: [@BitChillApp](https://x.com/BitChillApp)
+- Website: [bitchill.app](https://bitchill.app)
+- GitHub: [BitChillRSK](https://github.com/BitChillRSK)
+- Twitter: [@BitChillApp](https://x.com/BitChillApp)
 
 ## License
 
