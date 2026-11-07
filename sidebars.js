@@ -33,6 +33,7 @@ const sidebars = {
         'contracts/core-contracts',
         'contracts/addresses',
         'contracts/integration',
+        'contracts/offchain-services',
       ],
     },
     {

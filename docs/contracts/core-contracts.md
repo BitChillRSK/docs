@@ -31,7 +31,7 @@ function withdrawAllAccumulatedRbtc(address[] calldata tokens, uint256[] calldat
 
 `withdrawAllAccumulatedRbtc` is the only rBTC claim call. Its two arrays are positional pairs of token and route. For one pair, pass one-element arrays. For several pairs, pass one entry for each pair. A pair with no handler or with a zero balance is skipped. Empty arrays or arrays of different length revert. The [integration notes](/docs/contracts/integration#claim-rbtc) give examples.
 
-`withdrawTokenAndInterest` and `topUpFromInterest` are for a lending route. An idle schedule reverts those calls. `topUpFromInterest` adds lending interest to one schedule's principal. It does not move tokens out. A delete returns principal and does not claim interest or rBTC. An accrued-interest figure is not available on this site.
+`withdrawTokenAndInterest` and `topUpFromInterest` are for a lending route. An idle schedule reverts those calls. `topUpFromInterest` adds lending interest to one schedule's principal. It does not move tokens out. A delete returns principal and does not claim interest or rBTC. Read accrued interest with `getAccruedInterest`. These pages do not publish an interest figure.
 
 A withdrawal amount of the maximum `uint256` value means the whole principal of that schedule.
 
@@ -58,6 +58,7 @@ function getDcaSchedule(address token, uint64 scheduleId) external view returns 
 function getDcaSchedules(address user, address token)
     external view returns (uint64[] memory scheduleIds, DcaSchedule[] memory schedules);
 function getAccumulatedRbtcBalance(address user, address token, uint256 routeIndex) external view returns (uint256);
+function getAccruedInterest(address user, address token, uint256 routeIndex) external view returns (uint256);
 function getMinPurchasePeriod() external view returns (uint256);
 function getMaxSchedulesPerToken() external view returns (uint256);
 function getTokenMinPurchaseAmount(address token) external view returns (uint256);
@@ -65,7 +66,9 @@ function getTokenMinPurchaseAmount(address token) external view returns (uint256
 
 `getDcaSchedules` returns ids and records in the same order. A delete can move the last id into a freed slot. Address a schedule by the id and the token.
 
-An accrued-interest figure is not available from the offchain system. These pages do not publish one, and they do not publish a live APY.
+`getAccruedInterest` returns the lending interest of one account on one stablecoin and lending route, above the principal that its schedules hold. It is a quote at the market's current rate. It reverts on an idle route. The offchain system stores no copy. These pages do not publish an interest figure or an APY.
+
+`getTokenMinPurchaseAmount` returns the current minimum in the token's base units, or zero when no minimum is set.
 
 ## Swapper calls
 
@@ -96,7 +99,7 @@ The protected window lasts five blocks. During it, the contract refuses amount e
 Each `Batch` carries one quoted pair: the input of the quote and the minimum output for that input.
 
 - `quotedStablecoinIn` is the gross stablecoin input that the quote used, in the token's base units. It is normally the sum of the gross purchase amounts of the rows. USDT0 uses 6 decimals. DOC and USDRIF use 18 decimals. This value does not change a schedule debit.
-- `minRbtcOut` is the gross minimum output for that input, in wei. Gross means before the BitChill purchase fee. On a Uniswap route the output is WRBTC. On the Money on Chain route the output is native rBTC.
+- `minRbtcOut` is the gross minimum output for that input, in wei. Gross means before the BitChill purchase fee. On a DOC handler (Money on Chain) the output is native rBTC. On a DEX handler (Uniswap V3) the output is WRBTC.
 - The handler first pulls the stablecoin of the rows. The actual input can differ from the quoted input, for example after lending rounding or a short lending row.
 - The handler then scales the minimum to the actual input and rounds up: `ceil(minRbtcOut × actualInput / quotedStablecoinIn)`.
 - The handler measures the gross output it received. If that output is below the scaled minimum, the purchase reverts with `PurchaseRbtc__BelowSwapperMinimum(received, scaledMinimum)`. Every schedule debit of the batch reverts with it.
@@ -107,26 +110,65 @@ Each venue adds its own check:
 
 | Venue | Check in the handler |
 | --- | --- |
-| Uniswap (USDRIF, USDT0) | The router gets the higher of the scaled minimum and an oracle floor. The handler also requires the measured WRBTC to reach the oracle floor. Otherwise it reverts with `PurchaseUniswap__BelowOracleFloor(received, floor)` (selector `0x0f486c85`). |
-| Money on Chain (DOC) | The handler passes no minimum to Money on Chain and has no oracle floor. The scaled caller minimum is the only output check. |
+| Money on Chain (DOC, initial launch) | The handler passes no minimum to Money on Chain and has no oracle floor. The scaled caller minimum is the only output check. |
+| Uniswap V3 (USDRIF, USDT0, DEX handlers not enabled at the initial launch) | The router gets the higher of the scaled minimum and an oracle floor. The handler also requires the measured WRBTC to reach the oracle floor. Otherwise it reverts with `PurchaseUniswap__BelowOracleFloor(received, floor)` (selector `0x0f486c85`). |
+
+## Money on Chain handler
+
+A DOC handler calls `redeemFreeDoc(amount)` on the Money on Chain proxy from its own account. It measures the native rBTC that its balance gained. It passes no minimum to Money on Chain. Money on Chain can redeem less than the amount when its free DOC is short. The handler then reverts the batch with `PurchaseRbtc__InputAmountNotFullySpent`, because the venue did not take the whole input. The BitChill swapper reads the free DOC capacity and the Money on Chain gas price cap before it sends DOC work. See [Offchain services](/docs/contracts/offchain-services#swapper).
+
+## DEX handler settings
+
+The DEX handlers are implemented and tested. The initial launch does not enable them. This section is the protocol reference for a later reviewed configuration.
+
+```solidity
+// Owner only
+function setPurchasePathAllowed(address[] memory intermediateTokens, uint24[] memory poolFeeRates, bool allowed) external;
+function setAmountOutMinimumPercent(uint256 amountOutMinimumPercent) external;
+function setAmountOutMinimumSafetyCheck(uint256 amountOutMinimumSafetyCheck) external;
+function setMocOracle(address newOracle) external;
+
+// Owner or an allowlisted swapper
+function setPurchasePath(address[] memory intermediateTokens, uint24[] memory poolFeeRates) external;
+
+// Anyone
+function restoreSwapRouterApproval() external;
+
+function getSwapPath() external view returns (bytes memory);
+function isPurchasePathAllowed(bytes32 pathHash) external view returns (bool);
+function getAmountOutMinimumPercent() external view returns (uint256);
+function getAmountOutMinimumSafetyCheck() external view returns (uint256);
+function getMocOracle() external view returns (ICoinPairPrice);
+```
+
+### Swap path
+
+- The path is Uniswap V3 `exactInput` bytes: the handler's stablecoin, then a pool fee and an intermediate token for each hop, then the last pool fee and WRBTC. An empty intermediate list is a direct pair. `poolFeeRates` must have one more entry than `intermediateTokens`.
+- The constructor installs the first path and allowlists it.
+- The owner allowlists or revokes an exact encoded path. The allowlist key is the hash of the encoded bytes. The owner cannot revoke the active path.
+- `setPurchasePath` activates a path that is already allowlisted. The owner or an allowlisted swapper can call it. Any other path reverts with `PurchaseUniswap__PurchasePathNotAllowed`.
+- A path change emits `PurchaseUniswap__NewPathSet(intermediateTokens, poolFeeRates, newPath)`. An allowlist change emits `PurchaseUniswap__PurchasePathAllowedSet`.
+- After a swap, the router's balance of each intermediate token must equal its balance before the swap. Otherwise the purchase reverts with `PurchaseUniswap__IntermediateBalanceChangedInRouter`.
+
+### Oracle floor
+
+The floor is the lowest WRBTC output that the handler accepts:
+
+```text
+floor = stablecoinAmount × 10^(18 − stablecoinDecimals) × amountOutMinimumPercent / btcUsdPrice
+```
+
+- `btcUsdPrice` comes from the Money on Chain BTC/USD oracle, with 18 decimals. The handler assumes that the stablecoin is worth one US dollar.
+- The oracle must report a valid price. Otherwise the purchase reverts with `PurchaseUniswap__OutdatedPrice`.
+- `amountOutMinimumPercent` is scaled to 1e18, so 1e18 is 100%. The router gets the higher of the floor and the scaled caller minimum. The measured WRBTC must also reach the floor.
+- The floor is a loose emergency bound. The swapper's per-batch minimum is the operational bound.
+- Bounds: the floor and the safety check are at most 100%, and the floor cannot be below the safety check. To lower the floor below the safety check, the owner first lowers the safety check in a separate transaction.
+- The contract repository's deployment configuration starts with a floor of 97% and a safety check of 95%. The owner can change both within the bounds.
+- A stablecoin with more than 18 decimals is rejected at construction.
 
 ## BitChill swapper behaviour
 
-The BitChill swapper is operated software. It is not a contract. This section describes its relaunch behaviour at a high level. Its operator values are not published here.
-
-- It buys only for the six launch pairs. It does not buy a schedule on route index 2.
-- It accepts only the launch swap paths: USDRIF → USDT0 (0.05% pool) → WRBTC (0.30% pool), and USDT0 → WRBTC (0.30% pool). Before a quote, it reads the active swap path of each handler on chain. A different path omits that handler's group.
-- Each handler group keeps `quotedStablecoinIn` and `minRbtcOut` together as one pair through the simulation, the send, and a retry. A stale DOC quote is quoted again once, and the new pair replaces the whole old pair. A stale Uniswap quote is not quoted again. That group is omitted.
-- USDRIF and USDT0 groups use Uniswap quotes. The groups of one transaction are quoted in transaction order, because a later group trades after the earlier groups on a shared pool.
-- A DOC group always has a positive minimum. The swapper computes the expected native rBTC from Money on Chain redemption pricing, after Money on Chain fees and before the BitChill fee. It then subtracts a configured tolerance. If that quote fails, the swapper omits the DOC group. It never sends a DOC group with a zero minimum. Other groups can still go.
-- Before a send that contains DOC work, the swapper reads the Money on Chain gas price cap and the free DOC capacity. A DOC group that does not fit waits for a later run.
-- It omits a Uniswap group whose quote is too far below the handler's oracle reference, or whose price impact is too high. It defers a row or a batch above a size limit. These limits are required operator settings with no default. The swapper does not start without them. Their values are open operator decisions.
-- On a lending route, a row whose user has no share value left is excluded after a decoded simulation revert. The rest of the transaction is simulated again.
-- It buys each schedule at most once in one run.
-- It simulates the exact transaction before the send. A simulation shows only success or failure. It is not a measured price.
-- It does not open the protected purchase window.
-
-A group or a row that the swapper omits stays due. If it waits past its next due day, a later purchase consumes only the newest due slot. There is no catch-up.
+The BitChill swapper is operated software, not a contract. It decides which due schedules to send, quotes the pair of `quotedStablecoinIn` and `minRbtcOut`, and checks the result before a send. Its behaviour is on the [offchain services page](/docs/contracts/offchain-services#swapper). Its operator values are not published.
 
 ## Owner settings on the manager
 
@@ -138,6 +180,8 @@ function setTokenMinPurchaseAmount(address token, uint256 minPurchaseAmount) ext
 
 The minimum period is a whole number of UTC days and is at least one day. Each stablecoin has its own purchase minimum. A zero minimum is rejected.
 
+The owner can change a token minimum after launch. Each change emits `DcaManager__TokenMinPurchaseAmountSet(token, amount)`. The manager checks the minimum when a schedule is created and when its purchase amount is edited. An existing schedule keeps its stored amount, and a purchase does not check the minimum. A client reads the current value on chain. A create for a token with no minimum reverts with `DcaManager__TokenMinPurchaseAmountNotSet`.
+
 ## OperationsAdmin
 
 ```solidity
@@ -148,11 +192,12 @@ function addSwapper(address swapper) external;
 function revokeSwapper(address swapper) external;
 
 function getHandler(address token, uint256 routeIndex) external view returns (address handler);
+function getRouteClass(uint256 index) external view returns (RouteClass);
 function areDepositsPaused(address token, uint256 routeIndex) external view returns (bool paused);
 function isSwapper(address account) external view returns (bool);
 ```
 
-A route class is set once. A handler assignment is add-only. One handler address backs one pair. The deployment script registers route 1 as a lending route and assigns the six launch handlers. It does not register route 2. A deposit pause blocks new deposits for that pair. It does not block a purchase, an edit, a withdrawal, a delete, or an rBTC claim.
+A route class is set once. A handler assignment is add-only. One handler address backs one pair. The [architecture page](/docs/contracts/architecture#operationsadmin) lists the checks of `assignHandler`. The initial launch registers route 1 as a lending route and assigns two handlers: DOC idle and DOC LayerBank. It does not register route 2. A later reviewed configuration can assign the USDRIF and USDT0 DEX handlers on the same registry. A deposit pause blocks new deposits for that pair. It does not block a purchase, an edit, a withdrawal, a delete, or an rBTC claim.
 
 ## Fee settings on a handler
 
@@ -167,7 +212,7 @@ function setFeeRateParams(uint256 minFeeRate, uint256 maxFeeRate, uint256 feePur
 function getFeeSettings() external view returns (FeeSettings memory);
 ```
 
-Rates are basis points. The maximum rate cannot be above 500. The weight is applied to the rBTC output. The purchase still spends the gross stablecoin amount. No live rate is published.
+Rates are basis points. The maximum rate cannot be above 500. The weight is applied to the rBTC output. The purchase still spends the gross stablecoin amount. No live rate is published. The [fees page](/docs/user-guide/fees#fee-formula) gives the formula and the rBTC split.
 
 ## Validation that callers hit
 

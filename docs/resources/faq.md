@@ -12,15 +12,29 @@ BitChill is a dollar-cost averaging protocol on Rootstock. You deposit a stablec
 
 The contracts in these pages are not deployed.
 
-### Which stablecoins and routes does this protocol use?
+### Which stablecoins and routes does the initial launch support?
 
-| Stablecoin | Decimals | Routes at launch |
-| --- | --- | --- |
-| DOC | 18 | Idle, LayerBank |
-| USDRIF | 18 | Idle, LayerBank |
-| USDT0 | 6 | Idle, LayerBank |
+The initial launch supports DOC only, on the idle route (index 0) and the LayerBank route (index 1). That is two stablecoin and route pairs. The idle route earns no lending yield. Sovryn is not a launch route. Tropykus is not a route.
 
-That is six stablecoin and route pairs. Sovryn is not a launch route. Tropykus is not a route. The idle route earns no lending yield. The route table is on the [supported tokens page](/docs/getting-started/supported-assets).
+### Does the protocol support other stablecoins?
+
+Yes. The protocol implements three stablecoins:
+
+| Stablecoin | Decimals | Purchase venue | Initial launch |
+| --- | --- | --- | --- |
+| DOC | 18 | Money on Chain | Idle and LayerBank |
+| USDRIF | 18 | Uniswap V3 | Implemented. Not enabled. |
+| USDT0 | 6 | Uniswap V3 | Implemented. Not enabled. |
+
+The USDRIF and USDT0 DEX handlers are implemented and tested. The route table is on the [supported tokens page](/docs/getting-started/supported-assets#route-pairs).
+
+### Why does the initial launch support DOC only?
+
+A USDRIF or USDT0 purchase swaps on Rootstock Uniswap V3 pools. The swapper's execution-quality rules check each DEX quote against an oracle reference and against the pool price before the transaction. Those rules need pool depth. Rootstock DEX liquidity on these paths is not yet deep enough for them. A DOC purchase redeems at Money on Chain and does not trade against a pool.
+
+### Can USDRIF and USDT0 be enabled later?
+
+Yes. A reviewed configuration can enable them when Rootstock DEX liquidity is deep enough for the execution-quality rules. No contract code change is needed. The owner deploys and assigns the DEX handlers, and the operators configure the offchain services. See [Enabling USDRIF and USDT0](/docs/getting-started/supported-assets#enabling-usdrif-and-usdt0).
 
 ### Is this version audited?
 
@@ -36,7 +50,7 @@ The protocol contracts are not deployed. The [address page](/docs/contracts/addr
 
 The cadence is a whole number of UTC days, measured from the cadence anchor. The anchor is a UTC midnight, or zero before the first purchase. It is not the purchase time. The first purchase is eligible on the creation UTC day once the swapper submits it. A later purchase becomes eligible at 00:00 UTC on the due day. There is no guaranteed minute. Missed slots are skipped. There is no catch-up.
 
-The deployment script uses a minimum of 7 days. The owner can change the minimum. The contract does not allow a minimum below one UTC day.
+The deployment configuration uses a minimum of 7 days. The owner can change the minimum. The contract does not allow a minimum below one UTC day.
 
 ### What else does a purchase need?
 
@@ -44,13 +58,13 @@ A purchase needs an allowlisted swapper, enough principal for the gross amount, 
 
 ### What is the minimum purchase?
 
-The owner sets a minimum for each stablecoin. The deployment script uses 25 whole tokens, in that token's decimals. USDT0 has 6 decimals. DOC and USDRIF have 18 decimals. There is no live minimum, because the contracts are not deployed.
+The DcaManager owner sets a minimum for each stablecoin and can change it after launch. The app reads the current value on chain before it accepts a schedule. The deployment configuration starts DOC at 25 DOC. A minimum is in that token's decimals: USDT0 has 6 decimals, and DOC and USDRIF have 18. A change applies to new schedules and to purchase-amount edits, not to the stored amount of an existing schedule. There is no live minimum yet, because the contracts are not deployed.
 
 The purchase amount also cannot exceed the schedule principal.
 
 ### Can I hold more than one schedule?
 
-Yes, up to the cap for that stablecoin. The deployment script uses a cap of 10. Each schedule has its own id, balance, amount, cadence, and route. rBTC for the same token and route is stored in one handler.
+Yes, up to the cap for that stablecoin. The deployment configuration uses a cap of 10. Each schedule has its own id, balance, amount, cadence, and route. rBTC for the same token and route is stored in one handler.
 
 ### What does a schedule pause do?
 
@@ -72,7 +86,7 @@ The owner configures the fee. These pages do not state a live percentage. The sc
 
 ### What yield do I earn?
 
-The idle route earns no lending yield. A LayerBank route can lend the waiting stablecoin. LayerBank yield is not guaranteed. An accrued-interest figure is not available. The offchain system does not store an accrued-interest quote. These pages do not publish a live APY.
+The idle route earns no lending yield. A LayerBank route can lend the waiting stablecoin. LayerBank yield is not guaranteed. The app shows an indicative LayerBank supply APY from the pool's current variable rate. It excludes incentive rewards and it is not a BitChill rate. The app reads your accrued interest on chain with `getAccruedInterest`. The offchain system does not store an accrued-interest quote. These pages do not publish an APY or an interest figure.
 
 ### Who pays gas for a purchase?
 
